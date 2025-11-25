@@ -1,22 +1,46 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wrench, Plus, MapPin, Printer, X } from 'lucide-react';
-import { JobCard, Customer, Site } from '../types';
-import { getJobs, getCustomers, getSites } from '../services/db';
+import { Wrench, Plus, MapPin, Printer, X, Save, Loader2 } from 'lucide-react';
+import { JobCard, Customer, Site, TeamMember } from '../types';
+import { getJobs, getCustomers, getSites, getTeam, createJobCard } from '../services/db';
 
 export const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<JobCard[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
+  const [technicians, setTechnicians] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [printJob, setPrintJob] = useState<JobCard | null>(null);
 
+  // Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [newJob, setNewJob] = useState<Partial<JobCard>>({
+    jobNumber: '',
+    type: 'Corrective',
+    priority: 'Normal',
+    status: 'Open',
+    description: '',
+    scheduledDate: new Date().toISOString().split('T')[0],
+    isAmcCovered: false,
+    customerId: '',
+    siteId: '',
+    assignedTechnicianId: ''
+  });
+
   useEffect(() => {
     const fetchData = async () => {
-      const [jData, cData, sData] = await Promise.all([getJobs(), getCustomers(), getSites()]);
+      const [jData, cData, sData, tData] = await Promise.all([
+        getJobs(), 
+        getCustomers(), 
+        getSites(),
+        getTeam()
+      ]);
       setJobs(jData);
       setCustomers(cData);
       setSites(sData);
+      // Filter team members who are technicians or in field service
+      setTechnicians(tData.filter(t => t.role === 'Technician' || t.department === 'Field Service'));
       setLoading(false);
     };
     fetchData();
@@ -30,6 +54,44 @@ export const Jobs: React.FC = () => {
     setTimeout(() => window.print(), 100);
   };
 
+  const openCreateModal = () => {
+    setNewJob({
+      jobNumber: `J-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      type: 'Corrective',
+      priority: 'Normal',
+      status: 'Open',
+      description: '',
+      scheduledDate: new Date().toISOString().split('T')[0],
+      isAmcCovered: false,
+      customerId: '',
+      siteId: '',
+      assignedTechnicianId: ''
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!newJob.customerId || !newJob.siteId || !newJob.description) return;
+    
+    setSaving(true);
+    try {
+      await createJobCard(newJob as JobCard);
+      // Optimistic update
+      const createdJob = { ...newJob, id: 'temp-' + Date.now() } as JobCard;
+      setJobs([createdJob, ...jobs]);
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error("Failed to create job", error);
+      alert("Failed to create job");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Filter sites based on selected customer
+  const filteredSites = sites.filter(s => s.customerId === newJob.customerId);
+
   const getPriorityColor = (p: string) => {
     switch(p) {
       case 'Critical': return 'text-red-600 bg-red-50';
@@ -40,6 +102,141 @@ export const Jobs: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Create Job Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:hidden">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-gray-900">Create New Job Card</h3>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateJob} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Number</label>
+                  <input 
+                    type="text" 
+                    readOnly
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-gray-50 text-gray-500"
+                    value={newJob.jobNumber}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none"
+                    value={newJob.scheduledDate}
+                    onChange={e => setNewJob({...newJob, scheduledDate: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                  <select 
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none bg-white"
+                    value={newJob.customerId}
+                    onChange={e => setNewJob({...newJob, customerId: e.target.value, siteId: ''})}
+                  >
+                    <option value="">Select Customer</option>
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Site</label>
+                  <select 
+                    required
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none bg-white"
+                    value={newJob.siteId}
+                    onChange={e => setNewJob({...newJob, siteId: e.target.value})}
+                    disabled={!newJob.customerId}
+                  >
+                    <option value="">Select Site</option>
+                    {filteredSites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
+                  <select 
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none bg-white"
+                    value={newJob.type}
+                    onChange={e => setNewJob({...newJob, type: e.target.value as any})}
+                  >
+                    <option value="Corrective">Corrective</option>
+                    <option value="Preventive">Preventive</option>
+                    <option value="Installation">Installation</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select 
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none bg-white"
+                    value={newJob.priority}
+                    onChange={e => setNewJob({...newJob, priority: e.target.value as any})}
+                  >
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description / Issue</label>
+                <textarea 
+                  required
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none"
+                  placeholder="Describe the work required..."
+                  value={newJob.description}
+                  onChange={e => setNewJob({...newJob, description: e.target.value})}
+                ></textarea>
+              </div>
+
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Assign Technician</label>
+                  <select 
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none bg-white"
+                    value={newJob.assignedTechnicianId || ''}
+                    onChange={e => setNewJob({...newJob, assignedTechnicianId: e.target.value})}
+                  >
+                    <option value="">Unassigned</option>
+                    {technicians.map(t => <option key={t.id} value={t.id}>{t.name} ({t.role})</option>)}
+                  </select>
+              </div>
+
+              <div className="pt-4 flex justify-end space-x-3 rtl:space-x-reverse">
+                <button 
+                  type="button" 
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={saving}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center"
+                >
+                  {saving && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                  <Save size={16} className="mr-2 rtl:ml-2 rtl:mr-0" /> Save Job Card
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Print Overlay */}
       {printJob && (
         <div className="fixed inset-0 z-[100] bg-white overflow-y-auto">
@@ -119,7 +316,10 @@ export const Jobs: React.FC = () => {
 
       <div className="flex justify-between items-center print:hidden">
         <h1 className="text-2xl font-bold text-slate-900">Job Cards</h1>
-        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm">
+        <button 
+          onClick={openCreateModal}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow-sm"
+        >
           <Plus size={18} className="mr-2 rtl:ml-2 rtl:mr-0" /> Create Job
         </button>
       </div>
