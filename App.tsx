@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
@@ -11,11 +12,14 @@ import { Contracts } from './pages/Contracts';
 import { Clients } from './pages/Clients';
 import { Reports } from './pages/Reports';
 import { Assets } from './pages/Assets';
-import { Accounts } from './pages/Accounts';
+import { Accounts } from './pages/Accounts'; // Kept for legacy compatibility if needed
+import { Finance } from './pages/Finance'; // New Module
 import { Inventory } from './pages/Inventory';
 import { Login } from './pages/Login';
 import { Team } from './pages/Team';
 import { Settings } from './pages/Settings';
+import { Projects } from './pages/Projects'; // New Module
+import { TechnicianJob } from './pages/TechnicianJob'; // New Module
 import { Role, Language } from './types';
 import { useAuth } from './contexts/AuthContext';
 
@@ -46,15 +50,19 @@ const App = () => {
               <Route path="/clients" element={<Clients />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/assets" element={<Assets />} />
-              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/finance" element={<Finance />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/team" element={<Team />} />
               <Route path="/settings" element={<Settings />} />
-              {/* Fallback for auth users */}
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/technician" element={<TechnicianJob />} />
+              
+              {/* Redirect old accounts route to new finance */}
+              <Route path="/accounts" element={<Navigate to="/finance" replace />} />
+              
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </>
           ) : (
-            // If trying to access private route while public, redirect to login or home
             <Route path="*" element={<Navigate to="/" replace />} />
           )}
         </Routes>

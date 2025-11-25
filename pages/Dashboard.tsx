@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
 } from 'recharts';
-import { AlertTriangle, TrendingUp, Users, CheckCircle, Sparkles, AlertOctagon } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Users, CheckCircle, AlertOctagon } from 'lucide-react';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
-import { generateDashboardInsights } from '../services/geminiService';
 import { Language } from '../types';
 import { getContracts, getWorkOrders, getInvoices } from '../services/db';
 
@@ -15,9 +14,6 @@ interface Props {
 const COLORS = ['#DC2626', '#F59E0B', '#10B981', '#6366F1'];
 
 export const Dashboard: React.FC<Props> = ({ lang }) => {
-  const [insights, setInsights] = useState<string>('Generating AI operational insights...');
-  const [loadingAI, setLoadingAI] = useState(true);
-  
   // Real Data States
   const [stats, setStats] = useState({
     activeContracts: 0,
@@ -67,16 +63,6 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
         { name: 'Corrective', value: workOrders.length - preventive - emergency || 2 },
         { name: 'Emergency', value: emergency || 1 },
       ]);
-
-      // AI Insights
-      try {
-        const text = await generateDashboardInsights(contracts, workOrders);
-        setInsights(text);
-      } catch (e) {
-        setInsights("Could not load insights.");
-      } finally {
-        setLoadingAI(false);
-      }
     };
 
     loadDashboardData();
@@ -136,25 +122,6 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* AI Insights Panel */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10"><Sparkles size={100} /></div>
-        <div className="flex items-center space-x-2 rtl:space-x-reverse mb-4 relative z-10">
-          <Sparkles className="text-yellow-400" size={20} />
-          <h2 className="font-bold text-lg">AI Operational Insights</h2>
-        </div>
-        <div className="relative z-10 prose prose-invert max-w-none text-sm text-slate-200 leading-relaxed whitespace-pre-line">
-           {loadingAI ? (
-             <div className="animate-pulse flex space-x-4">
-               <div className="flex-1 space-y-2 py-1">
-                 <div className="h-2 bg-slate-600 rounded"></div>
-                 <div className="h-2 bg-slate-600 rounded w-5/6"></div>
-               </div>
-             </div>
-           ) : insights}
-        </div>
       </div>
 
       {/* Charts */}

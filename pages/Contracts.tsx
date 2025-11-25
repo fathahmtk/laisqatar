@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Search, Filter, MoreHorizontal, CheckCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { Contract, ContractStatus } from '../types';
@@ -45,9 +46,9 @@ export const Contracts: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Contract Management</h1>
+        <h1 className="text-2xl font-bold text-slate-900">AMC Contracts</h1>
         <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium flex items-center shadow-sm transition-all">
-          <Plus size={18} className="mr-2 rtl:ml-2 rtl:mr-0" /> New Contract
+          <Plus size={18} className="mr-2 rtl:ml-2 rtl:mr-0" /> New AMC
         </button>
       </div>
 
@@ -87,7 +88,7 @@ export const Contracts: React.FC = () => {
                 <th className="px-6 py-4">Contract ID</th>
                 <th className="px-6 py-4">Client</th>
                 <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Duration</th>
+                <th className="px-6 py-4">Service Terms</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Value (QAR)</th>
                 <th className="px-6 py-4 text-right rtl:text-left">Actions</th>
@@ -101,8 +102,8 @@ export const Contracts: React.FC = () => {
                   <td className="px-6 py-4">{contract.type}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col text-xs">
-                      <span>{contract.startDate}</span>
-                      <span className="text-gray-400">to {contract.endDate}</span>
+                      <span className="font-semibold">{contract.paymentTerms} Billing</span>
+                      <span className="text-gray-500">{contract.visitsPerYear} Visits/Yr • {contract.slaResponseTimeHours}h SLA</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">

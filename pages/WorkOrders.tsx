@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
-  CheckCircle, Clock, MapPin, AlertCircle, Camera, PenTool, Search, Plus, X, Filter, Loader2, Wrench
+  CheckCircle, Clock, MapPin, Camera, PenTool, Search, Plus, X, Filter, Loader2, Wrench
 } from 'lucide-react';
 import { Role, Language, WorkOrder, WorkOrderStatus, WorkOrderPriority } from '../types';
-import { generateTechnicianGuidance } from '../services/geminiService';
 import { getWorkOrders, createWorkOrder } from '../services/db';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,8 +16,6 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
-  const [guidance, setGuidance] = useState<string>('');
-  const [loadingGuidance, setLoadingGuidance] = useState(false);
   
   // Filter & Search State
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,11 +30,13 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
     location: string;
     priority: WorkOrderPriority;
     assignedTo: string;
+    type: 'Preventive' | 'Corrective' | 'Installation' | 'Emergency';
   }>({
     title: '',
     location: '',
     priority: WorkOrderPriority.MEDIUM,
-    assignedTo: ''
+    assignedTo: '',
+    type: 'Corrective'
   });
 
   useEffect(() => {
@@ -51,12 +51,6 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
 
   const handleSelectOrder = async (order: WorkOrder) => {
     setSelectedOrder(order);
-    if (userRole === Role.TECHNICIAN) {
-      setLoadingGuidance(true);
-      const help = await generateTechnicianGuidance(order);
-      setGuidance(help);
-      setLoadingGuidance(false);
-    }
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -64,6 +58,7 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
     const order: WorkOrder = {
       id: `WO-${1000 + workOrders.length + 1}`,
       title: newOrder.title,
+      type: newOrder.type,
       location: newOrder.location,
       priority: newOrder.priority,
       status: WorkOrderStatus.OPEN,
@@ -75,7 +70,7 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
     setIsCreateModalOpen(false);
     
     await createWorkOrder(order);
-    setNewOrder({ title: '', location: '', priority: WorkOrderPriority.MEDIUM, assignedTo: '' });
+    setNewOrder({ title: '', location: '', priority: WorkOrderPriority.MEDIUM, assignedTo: '', type: 'Corrective' });
   };
 
   const toggleStatus = (status: WorkOrderStatus) => {
@@ -228,24 +223,6 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
           </div>
           
           <div className="flex-1 overflow-y-auto p-6 bg-white">
-            {userRole === Role.TECHNICIAN && (
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5 mb-8 shadow-sm">
-                 <h4 className="flex items-center text-blue-900 font-bold text-sm mb-3">
-                   <AlertCircle size={18} className="mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" />
-                   AI Safety Briefing
-                 </h4>
-                 {loadingGuidance ? (
-                   <div className="space-y-2">
-                     <div className="h-4 bg-blue-200/50 rounded animate-pulse w-3/4"></div>
-                     <div className="h-4 bg-blue-200/50 rounded animate-pulse w-1/2"></div>
-                   </div>
-                 ) : (
-                   <div className="text-sm text-blue-800 whitespace-pre-line leading-relaxed font-medium">
-                     {guidance}
-                   </div>
-                 )}
-              </div>
-            )}
              <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <h3 className="font-bold text-gray-900 mb-4 text-xs uppercase tracking-wider text-gray-500">Tasks Checklist</h3>
@@ -317,9 +294,18 @@ export const WorkOrders: React.FC<Props> = ({ lang }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign To</label>
-                  <input type="text" value={newOrder.assignedTo} onChange={e => setNewOrder({...newOrder, assignedTo: e.target.value})} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none text-left rtl:text-right" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Type</label>
+                  <select value={newOrder.type} onChange={e => setNewOrder({...newOrder, type: e.target.value as any})} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none bg-white">
+                    <option value="Corrective">Corrective</option>
+                    <option value="Preventive">Preventive</option>
+                    <option value="Installation">Installation</option>
+                    <option value="Emergency">Emergency</option>
+                  </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assign To</label>
+                <input type="text" value={newOrder.assignedTo} onChange={e => setNewOrder({...newOrder, assignedTo: e.target.value})} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none text-left rtl:text-right" />
               </div>
               <div className="pt-4 flex items-center justify-end space-x-3 rtl:space-x-reverse border-t border-gray-100 mt-2">
                 <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
