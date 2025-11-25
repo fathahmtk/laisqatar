@@ -1,20 +1,67 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# LAIS Qatar – Fire & Safety Operations & ERP Frontend
 
-# Run and deploy your AI Studio app
+This repository contains the React + Vite frontend for **LAIS Qatar’s Fire & Safety Operations Platform**.  
+The application is designed as a lightweight ERP-style web portal for:
 
-This contains everything you need to run your app locally.
+- Fire & safety **projects**
+- **AMC contracts** (Annual Maintenance Contracts)
+- **Corrective service jobs / complaints**
+- **Technician scheduling & job cards**
+- **Inventory & procurement**
+- **Basic finance & accounting dashboards**
 
-View your app in AI Studio: https://ai.studio/apps/drive/1NWsan08eJ3nmB-TNUyoYO7PlIYY4koq_
+This repo is **pure frontend** – no AI, no Gemini, no language models.
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## Tech Stack
 
+- **Framework:** React 19 + Vite
+- **Routing:** React Router v7
+- **Charts:** Recharts
+- **Icons:** lucide-react
+- **Auth / Data (current):** Firebase (can be replaced by your own backend APIs later)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+---
+
+## Core Screens (planned)
+
+- **Public**
+  - Landing / Home
+  - About, Services, Contact
+
+- **Portal**
+  - Dashboard
+  - Customers & Sites
+  - AMC Contracts & Schedules
+  - Service Requests & Job Cards
+  - Projects & BOQ
+  - Inventory & Procurement
+  - Finance & Reports
+  - Technician Job View
+
+All business objects (customers, AMC, jobs, projects, inventory, accounts) are backed by a relational database in the backend (separate project). This frontend communicates with that backend via REST APIs.
+
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Node.js (current LTS version)
+- npm or pnpm or yarn
+
+### Steps
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Create local environment file (if needed)
+cp .env.example .env.local
+# and configure:
+# VITE_API_BASE_URL="http://localhost:8000/api"
+# Firebase-related keys if you are using Firebase auth
+
+# 3. Run dev server
+npm run dev
