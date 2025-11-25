@@ -1,6 +1,6 @@
 {
-  "name": "Lais Qatar - Fire & Safety Platform",
-  "description": "A unified full-stack digital platform for Fire & Safety AMC management, asset tracking, and bilingual corporate presence.",
+  "name": "Lais Qatar - Fire & Safety ERP Frontend",
+  "description": "Enterprise Resource Planning (ERP) frontend for Fire & Safety operations, AMC management, asset tracking, and financial reporting.",
   "requestFramePermissions": [
     "camera",
     "geolocation"
