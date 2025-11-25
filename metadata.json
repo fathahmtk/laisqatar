@@ -1,0 +1,8 @@
+{
+  "name": "Lais Qatar - Fire & Safety Platform",
+  "description": "A unified full-stack digital platform for Fire & Safety AMC management, asset tracking, and bilingual corporate presence.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
