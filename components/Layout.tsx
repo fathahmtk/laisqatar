@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Database, FileText, Wrench, Package, 
   DollarSign, Briefcase, Settings, Menu, X, Bell, LogOut, 
-  PhoneCall, MapPin, Globe, MessageCircle
+  PhoneCall, MapPin, Globe, MessageCircle, Users, BarChart3
 } from 'lucide-react';
 import { Role, Language, Notification } from '../types';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
@@ -116,4 +116,53 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
             <NavItem to="/dashboard" icon={LayoutDashboard} label={TEXTS.dashboard[lang]} />
             
             <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Modules</div>
-            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]}
+            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]} />
+            <NavItem to="/amc" icon={FileText} label={TEXTS.amc_nav[lang]} />
+            <NavItem to="/jobs" icon={Wrench} label={TEXTS.jobs_nav[lang]} />
+            <NavItem to="/projects" icon={Briefcase} label={TEXTS.projects_nav[lang]} />
+            <NavItem to="/inventory" icon={Package} label={TEXTS.inventory_nav[lang]} />
+            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} />
+            
+            <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Management</div>
+            <NavItem to="/reports" icon={BarChart3} label="Reports" />
+            <NavItem to="/team" icon={Users} label="Team" />
+            <NavItem to="/settings" icon={Settings} label="Settings" />
+        </div>
+      </aside>
+
+      <div className="flex-1 lg:ltr:ml-64 lg:rtl:mr-64 flex flex-col min-h-screen transition-all">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+           <div className="flex items-center">
+             <button onClick={() => setSidebarOpen(true)} className="mr-4 rtl:ml-4 rtl:mr-0 lg:hidden text-gray-600">
+               <Menu size={24} />
+             </button>
+             <h2 className="text-lg font-bold text-gray-800 hidden md:block">
+                {currentUser?.email ? `Welcome, ${currentUser.email.split('@')[0]}` : 'Welcome'}
+             </h2>
+           </div>
+           
+           <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              <LanguageSwitcher currentLang={lang} onToggle={setLang} />
+              
+              <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+                <Bell size={20} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              
+              <div className="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              
+              <button onClick={handleLogout} className="text-gray-500 hover:text-red-600 p-2 hover:bg-red-50 rounded-full" title="Sign Out">
+                 <LogOut size={20} />
+              </button>
+           </div>
+        </header>
+
+        <main className="p-4 lg:p-8 flex-1 overflow-x-hidden">
+           {children}
+        </main>
+      </div>
+    </div>
+  );
+};
