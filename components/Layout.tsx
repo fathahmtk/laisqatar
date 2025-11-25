@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Database, FileText, Wrench, Package, 
   DollarSign, Briefcase, Settings, Menu, X, Bell, LogOut, 
-  PhoneCall, MapPin, Globe
+  PhoneCall, MapPin, Globe, MessageCircle
 } from 'lucide-react';
 import { Role, Language, Notification } from '../types';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
@@ -87,7 +87,23 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
     </header>
   );
 
-  if (isPublic) return <div className="font-sans"><PublicHeader /><main>{children}</main></div>;
+  if (isPublic) return (
+    <div className="font-sans relative">
+      <PublicHeader />
+      <main>{children}</main>
+      
+      {/* WhatsApp Floating Button */}
+      <a 
+        href="https://wa.me/97444000000" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 flex items-center justify-center"
+        aria-label="Chat on WhatsApp"
+      >
+        <MessageCircle size={32} />
+      </a>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans">
@@ -100,44 +116,4 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
             <NavItem to="/dashboard" icon={LayoutDashboard} label={TEXTS.dashboard[lang]} />
             
             <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Modules</div>
-            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]} />
-            <NavItem to="/amc" icon={FileText} label={TEXTS.amc_nav[lang]} />
-            <NavItem to="/jobs" icon={Wrench} label={TEXTS.jobs_nav[lang]} />
-            <NavItem to="/projects" icon={Briefcase} label={TEXTS.projects_nav[lang]} />
-            <NavItem to="/inventory" icon={Package} label={TEXTS.inventory_nav[lang]} />
-            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} />
-            
-            <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">System</div>
-            <NavItem to="/settings" icon={Settings} label="Settings" />
-            
-            <button onClick={handleLogout} className="flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 text-red-600 hover:bg-red-50 w-full rounded-lg mt-8">
-              <LogOut size={20} /><span>Sign Out</span>
-            </button>
-        </div>
-      </aside>
-
-      <div className="flex-1 lg:ltr:ml-64 lg:rtl:mr-64 flex flex-col min-h-screen">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
-           <button onClick={() => setSidebarOpen(true)} className="lg:hidden"><Menu size={20} /></button>
-           <div className="flex items-center space-x-5 rtl:space-x-reverse ml-auto">
-             <button className="relative p-2 text-gray-500 hover:text-gray-700">
-               <Bell size={20} />
-               {MOCK_NOTIFICATIONS.length > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full"></span>}
-             </button>
-             <LanguageSwitcher currentLang={lang} onToggle={setLang} />
-             <div className="flex items-center space-x-3 rtl:space-x-reverse border-l rtl:border-l-0 rtl:border-r pl-4 rtl:pl-0 rtl:pr-4">
-               <div className="text-right rtl:text-left text-sm hidden sm:block">
-                 <p className="font-bold text-gray-900">{currentUser?.email}</p>
-                 <p className="text-xs text-gray-500">{userRole}</p>
-               </div>
-               <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                 {currentUser?.email?.[0].toUpperCase()}
-               </div>
-             </div>
-           </div>
-        </header>
-        <main className="flex-1 p-6 overflow-x-hidden">{children}</main>
-      </div>
-    </div>
-  );
-};
+            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]}

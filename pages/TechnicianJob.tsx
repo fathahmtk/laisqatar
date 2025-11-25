@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
 import { JobCard } from '../types';
-import { Camera, CheckSquare, PenTool, Save, ArrowLeft, MapPin } from 'lucide-react';
+import { Camera, CheckSquare, PenTool, Save, ArrowLeft, MapPin, Loader2 } from 'lucide-react';
 import { MOCK_JOBS } from '../constants';
+import { updateJobStatus } from '../services/db';
 
 export const TechnicianJob: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<JobCard | null>(null);
   const [checklist, setChecklist] = useState<{item: string, checked: boolean}[]>([]);
+  const [saving, setSaving] = useState(false);
 
+  // In production, fetch assigned jobs for current user via useEffect
   const jobs = MOCK_JOBS;
 
   const handleStartJob = (job: JobCard) => {
@@ -19,6 +22,21 @@ export const TechnicianJob: React.FC = () => {
     const newCheck = [...checklist];
     newCheck[idx].checked = !newCheck[idx].checked;
     setChecklist(newCheck);
+  };
+
+  const handleCompleteJob = async () => {
+    if (!selectedJob) return;
+    setSaving(true);
+    
+    // Simulate API call
+    await updateJobStatus(selectedJob.id, 'Completed', { 
+      checklist, 
+      completionDate: new Date().toISOString() 
+    });
+
+    setSaving(false);
+    alert('Job Completed Successfully!');
+    setSelectedJob(null);
   };
 
   if (selectedJob) {
@@ -72,8 +90,12 @@ export const TechnicianJob: React.FC = () => {
         </div>
 
         <div className="fixed bottom-0 left-0 w-full p-4 bg-white border-t border-gray-200">
-           <button className="w-full bg-red-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center">
-             <Save size={20} className="mr-2"/> Complete Job
+           <button 
+             onClick={handleCompleteJob}
+             disabled={saving}
+             className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center disabled:opacity-70"
+           >
+             {saving ? <Loader2 className="animate-spin" /> : <><Save size={20} className="mr-2"/> Complete Job</>}
            </button>
         </div>
       </div>
@@ -84,7 +106,7 @@ export const TechnicianJob: React.FC = () => {
     <div className="space-y-4">
        <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
        {jobs.map(job => (
-         <div key={job.id} onClick={() => handleStartJob(job)} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm active:scale-95 transition-transform">
+         <div key={job.id} onClick={() => handleStartJob(job)} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm active:scale-95 transition-transform cursor-pointer">
             <div className="flex justify-between">
                <span className="font-bold text-gray-900">{job.description}</span>
                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">{job.priority}</span>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle, PlayCircle } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { Language } from '../types';
 import { TEXTS } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
   lang: Language;
@@ -12,6 +13,7 @@ interface Props {
 
 export const Login: React.FC<Props> = ({ lang }) => {
   const navigate = useNavigate();
+  const { loginDemo } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,20 +26,27 @@ export const Login: React.FC<Props> = ({ lang }) => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Navigation is handled by App.tsx router monitoring AuthContext
       navigate('/dashboard');
     } catch (err: any) {
       console.error("Login Failed", err);
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+      // Fallback for demo environment if firebase keys are placeholders
+      if (err.code === 'auth/invalid-api-key' || err.message.includes('API key')) {
+        setError('Firebase not configured. Please use Demo Login below.');
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
         setError('Invalid email or password.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many failed attempts. Try again later.');
       } else {
-        setError('Login failed. Please check your connection.');
+        setError('Login failed. Check console for details.');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    await loginDemo();
+    navigate('/dashboard');
+    setLoading(false);
   };
 
   return (
@@ -78,7 +87,6 @@ export const Login: React.FC<Props> = ({ lang }) => {
                  </div>
                  <input
                    type="email"
-                   required
                    value={email}
                    onChange={(e) => setEmail(e.target.value)}
                    className="block w-full pl-10 rtl:pl-3 rtl:pr-10 py-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm transition-colors text-left rtl:text-right"
@@ -95,7 +103,6 @@ export const Login: React.FC<Props> = ({ lang }) => {
                  </div>
                  <input
                    type="password"
-                   required
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
                    className="block w-full pl-10 rtl:pl-3 rtl:pr-10 py-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm transition-colors text-left rtl:text-right"
@@ -104,19 +111,37 @@ export const Login: React.FC<Props> = ({ lang }) => {
                </div>
              </div>
 
-             <button
-               type="submit"
-               disabled={loading}
-               className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-             >
-               {loading ? (
-                 <Loader2 className="animate-spin h-5 w-5" />
-               ) : (
-                 <>
-                   Sign In <ArrowRight className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4 rtl:rotate-180" />
-                 </>
-               )}
-             </button>
+             <div className="space-y-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin h-5 w-5" />
+                  ) : (
+                    <>
+                      Sign In <ArrowRight className="ml-2 rtl:mr-2 rtl:ml-0 h-4 w-4 rtl:rotate-180" />
+                    </>
+                  )}
+                </button>
+
+                <div className="relative flex py-1 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">or</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all"
+                >
+                  <PlayCircle className="mr-2 rtl:ml-2 rtl:mr-0 h-4 w-4" />
+                  Login as Admin (Demo)
+                </button>
+             </div>
              
              <div className="text-center">
                <a href="#" className="text-sm text-red-600 hover:text-red-500 font-medium">Forgot your password?</a>

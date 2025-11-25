@@ -22,6 +22,18 @@ export const fetchCollection = async <T>(collectionName: string): Promise<T[]> =
   }
 };
 
+// --- Generic Updater ---
+export const updateDocument = async (collectionName: string, id: string, data: any) => {
+  try {
+    const docRef = doc(db, collectionName, id);
+    await updateDoc(docRef, data);
+    return true;
+  } catch (error) {
+    console.error(`Error updating ${collectionName}/${id}:`, error);
+    return false;
+  }
+};
+
 // --- User Role Sync ---
 export const syncUser = async (user: User): Promise<Role> => {
   return Role.ADMIN; // Default for prototype
@@ -73,8 +85,11 @@ export const getReports = () => fetchCollection<Report>('reports');
 export const getExpenses = () => fetchCollection<Expense>('expenses');
 export const getTeam = () => fetchCollection<TeamMember>('team');
 
-// --- Helper: Create Job ---
+// --- Helper: Create/Update Job ---
 export const createJobCard = async (job: JobCard) => {
   if (job.id) await setDoc(doc(db, 'job_cards', job.id), job);
   else await addDoc(collection(db, 'job_cards'), job);
 };
+
+export const updateJobStatus = (id: string, status: string, data?: any) => 
+  updateDocument('job_cards', id, { status, ...data });

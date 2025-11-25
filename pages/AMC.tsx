@@ -50,6 +50,7 @@ export const AMC: React.FC = () => {
                 <th className="px-6 py-4">Customer</th>
                 <th className="px-6 py-4">Period</th>
                 <th className="px-6 py-4">Value (QAR)</th>
+                <th className="px-6 py-4">Sites</th>
                 <th className="px-6 py-4">Frequency</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right rtl:text-left">Actions</th>
@@ -62,6 +63,7 @@ export const AMC: React.FC = () => {
                   <td className="px-6 py-4 font-medium">{getCustomerName(contract.customerId)}</td>
                   <td className="px-6 py-4 text-gray-500">{contract.startDate} to {contract.endDate}</td>
                   <td className="px-6 py-4 font-medium">{contract.contractValue.toLocaleString()}</td>
+                  <td className="px-6 py-4">{contract.sites ? contract.sites.length : 0}</td>
                   <td className="px-6 py-4">{contract.frequency}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
