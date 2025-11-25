@@ -2,8 +2,11 @@ import {
   collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc, query, where, writeBatch 
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Asset, Contract, WorkOrder, Client, Invoice, InventoryItem } from '../types';
-import { MOCK_ASSETS, MOCK_CONTRACTS, MOCK_WORK_ORDERS, MOCK_CLIENTS, MOCK_INVOICES, MOCK_INVENTORY } from '../constants';
+import { Asset, Contract, WorkOrder, Client, Invoice, InventoryItem, TeamMember, Expense, Report } from '../types';
+import { 
+  MOCK_ASSETS, MOCK_CONTRACTS, MOCK_WORK_ORDERS, MOCK_CLIENTS, 
+  MOCK_INVOICES, MOCK_INVENTORY, MOCK_TEAM, MOCK_EXPENSES, MOCK_REPORTS 
+} from '../constants';
 
 // --- Generic Fetcher ---
 export const fetchCollection = async <T>(collectionName: string): Promise<T[]> => {
@@ -40,6 +43,9 @@ export const seedDatabase = async () => {
   await seed('clients', MOCK_CLIENTS);
   await seed('invoices', MOCK_INVOICES);
   await seed('inventory', MOCK_INVENTORY);
+  await seed('team', MOCK_TEAM);
+  await seed('expenses', MOCK_EXPENSES);
+  await seed('reports', MOCK_REPORTS);
 
   await batch.commit();
   console.log("Database seeded successfully!");
@@ -58,7 +64,6 @@ export const addAsset = async (asset: Omit<Asset, 'id'>) => {
 // --- Work Orders ---
 export const getWorkOrders = () => fetchCollection<WorkOrder>('work_orders');
 export const createWorkOrder = async (wo: WorkOrder) => {
-  // If ID is provided, use setDoc, otherwise addDoc
   if(wo.id) {
     await setDoc(doc(db, 'work_orders', wo.id), wo);
   } else {
@@ -68,9 +73,22 @@ export const createWorkOrder = async (wo: WorkOrder) => {
 
 // --- Contracts ---
 export const getContracts = () => fetchCollection<Contract>('contracts');
+export const createContract = async (contract: Contract) => {
+    await setDoc(doc(db, 'contracts', contract.id), contract);
+};
+
+// --- Clients ---
+export const getClients = () => fetchCollection<Client>('clients');
 
 // --- Inventory ---
 export const getInventory = () => fetchCollection<InventoryItem>('inventory');
 
 // --- Accounts ---
 export const getInvoices = () => fetchCollection<Invoice>('invoices');
+export const getExpenses = () => fetchCollection<Expense>('expenses');
+
+// --- Team ---
+export const getTeam = () => fetchCollection<TeamMember>('team');
+
+// --- Reports ---
+export const getReports = () => fetchCollection<Report>('reports');

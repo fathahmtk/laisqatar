@@ -1,9 +1,29 @@
-
-import React from 'react';
-import { FileText, Download, Filter, Calendar } from 'lucide-react';
-import { MOCK_REPORTS } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { FileText, Download, Filter, Calendar, Loader2 } from 'lucide-react';
+import { getReports } from '../services/db';
+import { Report } from '../types';
 
 export const Reports: React.FC = () => {
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getReports();
+      setReports(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-red-600" size={48} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -31,7 +51,7 @@ export const Reports: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {MOCK_REPORTS.map((report) => (
+            {reports.map((report) => (
               <tr key={report.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center">
@@ -65,6 +85,11 @@ export const Reports: React.FC = () => {
             ))}
           </tbody>
         </table>
+        {reports.length === 0 && (
+          <div className="p-10 text-center text-gray-500">
+            No reports found.
+          </div>
+        )}
       </div>
     </div>
   );

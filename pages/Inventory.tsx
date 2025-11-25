@@ -1,16 +1,24 @@
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, Search, AlertTriangle, ArrowDown, Plus, 
-  MoreHorizontal, RefreshCw, ShoppingCart, Filter 
+  MoreHorizontal, RefreshCw, ShoppingCart, Filter, Loader2 
 } from 'lucide-react';
-import { MOCK_INVENTORY } from '../constants';
 import { InventoryItem } from '../types';
+import { getInventory } from '../services/db';
 
 export const Inventory: React.FC = () => {
-  const [items, setItems] = useState<InventoryItem[]>(MOCK_INVENTORY);
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getInventory();
+      setItems(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -18,6 +26,14 @@ export const Inventory: React.FC = () => {
   );
 
   const lowStockItems = items.filter(i => i.quantity <= i.minLevel);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-red-600" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

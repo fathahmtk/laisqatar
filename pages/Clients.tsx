@@ -1,11 +1,33 @@
-
-import React, { useState } from 'react';
-import { Users, Mail, Phone, MapPin, Search } from 'lucide-react';
-import { MOCK_CLIENTS } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { Users, Mail, Phone, MapPin, Search, Loader2 } from 'lucide-react';
 import { Client } from '../types';
+import { getClients } from '../services/db';
 
 export const Clients: React.FC = () => {
-  const [clients] = useState<Client[]>(MOCK_CLIENTS);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getClients();
+      setClients(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  const filteredClients = clients.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-red-600" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -16,13 +38,15 @@ export const Clients: React.FC = () => {
           <input 
             type="text" 
             placeholder="Search clients..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-left rtl:text-right"
           />
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client) => (
+        {filteredClients.map((client) => (
           <div key={client.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-xl">

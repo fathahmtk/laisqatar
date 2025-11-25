@@ -1,14 +1,22 @@
-
-
-import React, { useState } from 'react';
-import { FileText, Plus, Search, Filter, MoreHorizontal, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
-import { MOCK_CONTRACTS } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { FileText, Plus, Search, Filter, MoreHorizontal, CheckCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { Contract, ContractStatus } from '../types';
+import { getContracts } from '../services/db';
 
 export const Contracts: React.FC = () => {
-  const [contracts] = useState<Contract[]>(MOCK_CONTRACTS);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getContracts();
+      setContracts(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const filteredContracts = contracts.filter(c => {
     const matchesSearch = c.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -25,6 +33,14 @@ export const Contracts: React.FC = () => {
       default: return 'bg-gray-100 text-gray-700';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-red-600" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -109,7 +125,7 @@ export const Contracts: React.FC = () => {
           </table>
           {filteredContracts.length === 0 && (
             <div className="p-10 text-center text-gray-500">
-              No contracts found matching your search.
+              No contracts found.
             </div>
           )}
         </div>

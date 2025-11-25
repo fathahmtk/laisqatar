@@ -1,18 +1,27 @@
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, TrendingUp, TrendingDown, FileText, Download, 
-  Search, Plus, Filter, MoreHorizontal, CheckCircle2, Clock, AlertCircle 
+  Search, Plus, Filter, MoreHorizontal, CheckCircle2, Clock, AlertCircle, Loader2 
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { MOCK_INVOICES, MOCK_EXPENSES } from '../constants';
 import { Invoice, Expense } from '../types';
+import { getInvoices, getExpenses } from '../services/db';
 
 export const Accounts: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'invoices' | 'expenses'>('overview');
-  const [invoices] = useState<Invoice[]>(MOCK_INVOICES);
-  const [expenses] = useState<Expense[]>(MOCK_EXPENSES);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [invData, expData] = await Promise.all([getInvoices(), getExpenses()]);
+      setInvoices(invData);
+      setExpenses(expData);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   // Financial Stats
   const totalIncome = invoices.reduce((sum, inv) => inv.status === 'PAID' ? sum + inv.amount : sum, 0);
@@ -40,6 +49,14 @@ export const Accounts: React.FC = () => {
       default: return null;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-red-600" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
