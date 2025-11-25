@@ -93,3 +93,13 @@ export const createJobCard = async (job: JobCard) => {
 
 export const updateJobStatus = (id: string, status: string, data?: any) => 
   updateDocument('job_cards', id, { status, ...data });
+
+export const createCustomer = async (customer: Omit<Customer, 'id'>) => {
+  const docRef = await addDoc(collection(db, 'customers'), customer);
+  return { id: docRef.id, ...customer };
+};
+
+export const createSite = async (site: Omit<Site, 'id'>) => {
+  const docRef = await addDoc(collection(db, 'sites'), site);
+  return { id: docRef.id, ...site };
+};
