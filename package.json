@@ -1,7 +1,7 @@
 {
-  "name": "lais-qatar---fire-&-safety-platform",
+  "name": "lais-qatar-fire-safety-erp-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,13 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "lucide-react": "^0.554.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6",
+    "lucide-react": "^0.554.0",
     "recharts": "^3.5.0",
-    "firebase": "^12.6.0",
-    "@google/genai": "^1.30.0"
+    "firebase": "^12.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
