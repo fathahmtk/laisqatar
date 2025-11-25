@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Database, FileText, Wrench, Package, 
   DollarSign, Briefcase, Settings, Menu, X, Bell, LogOut, 
-  MessageCircle, Users, BarChart3, Globe, User, ChevronDown, Check
+  MessageCircle, Users, BarChart3, Globe, User, ChevronDown, Check, Search, PlusCircle
 } from 'lucide-react';
 import { Role, Language } from '../types';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
@@ -25,11 +26,26 @@ const LanguageSwitcher: React.FC<{ currentLang: Language; onToggle: (lang: Langu
   </button>
 );
 
+const NavItem = ({ to, icon: Icon, label, isActive, onClick }: { to: string, icon: any, label: string, isActive: boolean, onClick: () => void }) => (
+  <Link
+    to={to}
+    onClick={onClick}
+    className={`flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg mb-1 transition-colors group
+      ${isActive
+        ? 'bg-red-50 text-red-600 font-medium' 
+        : 'text-gray-600 hover:bg-gray-50'}`}
+  >
+    <Icon size={20} className={`transition-colors ${isActive ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700'}`} />
+    <span>{label}</span>
+  </Link>
+);
+
 export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,6 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
   
   const notificationRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const quickActionsRef = useRef<HTMLDivElement>(null);
   
   const isPublic = !currentUser || userRole === Role.PUBLIC;
 
@@ -48,6 +65,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
+      }
+      if (quickActionsRef.current && !quickActionsRef.current.contains(event.target as Node)) {
+        setQuickActionsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -68,20 +88,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
     await logout();
     navigate('/');
   };
-
-  const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: string }) => (
-    <Link
-      to={to}
-      onClick={() => setSidebarOpen(false)}
-      className={`flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg mb-1 transition-colors group
-        ${location.pathname.startsWith(to)
-          ? 'bg-red-50 text-red-600 font-medium' 
-          : 'text-gray-600 hover:bg-gray-50'}`}
-    >
-      <Icon size={20} className={`transition-colors ${location.pathname.startsWith(to) ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700'}`} />
-      <span>{label}</span>
-    </Link>
-  );
 
   const PublicHeader = () => (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
@@ -131,13 +137,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/50 z-50 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-gray-200 shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 start-0 z-[60] lg:z-30 w-64 bg-white border-e border-gray-200 shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0'}`}>
         <div className="h-16 flex items-center px-6 border-b border-gray-100 justify-between">
            <div className="flex items-center space-x-2 rtl:space-x-reverse">
              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">L</div>
@@ -147,40 +153,72 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
         </div>
         
         <div className="p-4 overflow-y-auto h-[calc(100vh-4rem)] space-y-1 no-scrollbar">
-            <NavItem to="/dashboard" icon={LayoutDashboard} label={TEXTS.dashboard[lang]} />
+            <NavItem 
+              to="/dashboard" 
+              icon={LayoutDashboard} 
+              label={TEXTS.dashboard[lang]} 
+              isActive={location.pathname.startsWith('/dashboard')}
+              onClick={() => setSidebarOpen(false)}
+            />
             
             <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Operations</div>
-            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]} />
-            <NavItem to="/amc" icon={FileText} label={TEXTS.amc_nav[lang]} />
-            <NavItem to="/jobs" icon={Wrench} label={TEXTS.jobs_nav[lang]} />
-            <NavItem to="/projects" icon={Briefcase} label={TEXTS.projects_nav[lang]} />
-            <NavItem to="/inventory" icon={Package} label={TEXTS.inventory_nav[lang]} />
+            <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]} isActive={location.pathname.startsWith('/masters')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/amc" icon={FileText} label={TEXTS.amc_nav[lang]} isActive={location.pathname.startsWith('/amc')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/jobs" icon={Wrench} label={TEXTS.jobs_nav[lang]} isActive={location.pathname.startsWith('/jobs')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/projects" icon={Briefcase} label={TEXTS.projects_nav[lang]} isActive={location.pathname.startsWith('/projects')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/inventory" icon={Package} label={TEXTS.inventory_nav[lang]} isActive={location.pathname.startsWith('/inventory')} onClick={() => setSidebarOpen(false)} />
             
             <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Management</div>
-            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} />
-            <NavItem to="/reports" icon={BarChart3} label="Reports" />
-            <NavItem to="/team" icon={Users} label="Team" />
+            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} isActive={location.pathname.startsWith('/finance')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/reports" icon={BarChart3} label="Reports" isActive={location.pathname.startsWith('/reports')} onClick={() => setSidebarOpen(false)} />
+            <NavItem to="/team" icon={Users} label="Team" isActive={location.pathname.startsWith('/team')} onClick={() => setSidebarOpen(false)} />
             
             <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">System</div>
-            <NavItem to="/settings" icon={Settings} label="Settings" />
+            <NavItem to="/settings" icon={Settings} label="Settings" isActive={location.pathname.startsWith('/settings')} onClick={() => setSidebarOpen(false)} />
         </div>
       </aside>
 
       <div className="flex-1 lg:ltr:ml-64 lg:rtl:mr-64 flex flex-col min-h-screen transition-all">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 shadow-sm">
-           <div className="flex items-center">
-             <button onClick={() => setSidebarOpen(true)} className="mr-4 rtl:ml-4 rtl:mr-0 lg:hidden text-gray-600 p-1 hover:bg-gray-100 rounded-lg">
+           <div className="flex items-center flex-1 gap-4">
+             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-600 p-1 hover:bg-gray-100 rounded-lg">
                <Menu size={24} />
              </button>
-             <h2 className="text-lg font-bold text-gray-800 hidden md:block">
-                {currentUser?.email ? `Welcome, ${currentUser.email.split('@')[0]}` : 'Welcome back'}
-             </h2>
+             
+             {/* Global Search */}
+             <div className="hidden md:flex relative w-full max-w-md">
+                <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search contracts, jobs, or customers..." 
+                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                />
+             </div>
            </div>
            
-           <div className="flex items-center space-x-4 rtl:space-x-reverse">
+           <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <LanguageSwitcher currentLang={lang} onToggle={setLang} />
               
+              {/* Quick Actions */}
+              <div className="relative" ref={quickActionsRef}>
+                <button 
+                  onClick={() => setQuickActionsOpen(!quickActionsOpen)}
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  title="Quick Actions"
+                >
+                  <PlusCircle size={20} />
+                </button>
+                {quickActionsOpen && (
+                  <div className="absolute right-0 rtl:left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Create New</div>
+                    <Link to="/jobs" onClick={() => setQuickActionsOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600">Job Card</Link>
+                    <Link to="/masters" onClick={() => setQuickActionsOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600">Customer</Link>
+                    <Link to="/finance" onClick={() => setQuickActionsOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600">Invoice</Link>
+                  </div>
+                )}
+              </div>
+
               {/* Notifications */}
               <div className="relative" ref={notificationRef}>
                 <button 
