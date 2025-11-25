@@ -1,14 +1,14 @@
 
-
 import { 
-  collection, getDocs, doc, setDoc, addDoc, updateDoc, writeBatch 
+  collection, getDocs, doc, setDoc, addDoc, updateDoc, writeBatch, query, where
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Asset, Contract, WorkOrder, Client, Invoice, InventoryItem, TeamMember, Report, Role, Account, JournalEntry, Project, Expense } from '../types';
 import { User } from 'firebase/auth';
+import { Role, Customer, Site, Equipment, AMCContract, JobCard, Project, Item, Account, JournalEntry, Invoice, Report, Expense, TeamMember } from '../types';
 import { 
-  MOCK_ASSETS, MOCK_CONTRACTS, MOCK_WORK_ORDERS, MOCK_CLIENTS, 
-  MOCK_INVOICES, MOCK_INVENTORY, MOCK_TEAM, MOCK_REPORTS, MOCK_ACCOUNTS, MOCK_JOURNALS, MOCK_PROJECTS, MOCK_EXPENSES 
+  MOCK_CUSTOMERS, MOCK_SITES, MOCK_EQUIPMENT, MOCK_AMC_CONTRACTS, MOCK_JOBS, 
+  MOCK_PROJECTS, MOCK_ITEMS, MOCK_ACCOUNTS, MOCK_JOURNALS, MOCK_INVOICES,
+  MOCK_REPORTS, MOCK_EXPENSES, MOCK_TEAM
 } from '../constants';
 
 // --- Generic Fetcher ---
@@ -22,10 +22,9 @@ export const fetchCollection = async <T>(collectionName: string): Promise<T[]> =
   }
 };
 
-// --- User Management ---
+// --- User Role Sync ---
 export const syncUser = async (user: User): Promise<Role> => {
-  // In a real app, check DB. For prototype, assign Admin to see all features.
-  return Role.ADMIN; 
+  return Role.ADMIN; // Default for prototype
 };
 
 // --- Seeding ---
@@ -41,46 +40,41 @@ export const seedDatabase = async () => {
     });
   };
 
-  await seed('assets', MOCK_ASSETS);
-  await seed('contracts', MOCK_CONTRACTS);
-  await seed('work_orders', MOCK_WORK_ORDERS);
-  await seed('clients', MOCK_CLIENTS);
-  await seed('invoices', MOCK_INVOICES);
-  await seed('inventory', MOCK_INVENTORY);
-  await seed('team', MOCK_TEAM);
-  await seed('reports', MOCK_REPORTS);
+  await seed('customers', MOCK_CUSTOMERS);
+  await seed('sites', MOCK_SITES);
+  await seed('equipment', MOCK_EQUIPMENT);
+  await seed('amc_contracts', MOCK_AMC_CONTRACTS);
+  await seed('job_cards', MOCK_JOBS);
+  await seed('projects', MOCK_PROJECTS);
+  await seed('items', MOCK_ITEMS);
   await seed('accounts', MOCK_ACCOUNTS);
   await seed('journals', MOCK_JOURNALS);
-  await seed('projects', MOCK_PROJECTS);
+  await seed('invoices', MOCK_INVOICES);
+  await seed('reports', MOCK_REPORTS);
   await seed('expenses', MOCK_EXPENSES);
+  await seed('team', MOCK_TEAM);
 
   await batch.commit();
-  console.log("Database seeded successfully!");
+  console.log("Database seeded with Enterprise schema!");
 };
 
-// --- Getters ---
-export const getAssets = () => fetchCollection<Asset>('assets');
-export const updateAssetStatus = async (id: string, status: string) => {
-  const ref = doc(db, 'assets', id);
-  await updateDoc(ref, { status });
-};
-export const addAsset = async (asset: Omit<Asset, 'id'>) => {
-  await addDoc(collection(db, 'assets'), asset);
-};
-export const getWorkOrders = () => fetchCollection<WorkOrder>('work_orders');
-export const createWorkOrder = async (wo: WorkOrder) => {
-  if(wo.id) await setDoc(doc(db, 'work_orders', wo.id), wo);
-  else await addDoc(collection(db, 'work_orders'), wo);
-};
-export const getContracts = () => fetchCollection<Contract>('contracts');
-export const getClients = () => fetchCollection<Client>('clients');
-export const getInventory = () => fetchCollection<InventoryItem>('inventory');
-export const getInvoices = () => fetchCollection<Invoice>('invoices');
-export const getTeam = () => fetchCollection<TeamMember>('team');
-export const getReports = () => fetchCollection<Report>('reports');
-
-// --- New Modules ---
+// --- Module Fetchers ---
+export const getCustomers = () => fetchCollection<Customer>('customers');
+export const getSites = () => fetchCollection<Site>('sites');
+export const getEquipment = () => fetchCollection<Equipment>('equipment');
+export const getAMCContracts = () => fetchCollection<AMCContract>('amc_contracts');
+export const getJobs = () => fetchCollection<JobCard>('job_cards');
+export const getProjects = () => fetchCollection<Project>('projects');
+export const getInventory = () => fetchCollection<Item>('items');
 export const getAccounts = () => fetchCollection<Account>('accounts');
 export const getJournals = () => fetchCollection<JournalEntry>('journals');
-export const getProjects = () => fetchCollection<Project>('projects');
+export const getInvoices = () => fetchCollection<Invoice>('invoices');
+export const getReports = () => fetchCollection<Report>('reports');
 export const getExpenses = () => fetchCollection<Expense>('expenses');
+export const getTeam = () => fetchCollection<TeamMember>('team');
+
+// --- Helper: Create Job ---
+export const createJobCard = async (job: JobCard) => {
+  if (job.id) await setDoc(doc(db, 'job_cards', job.id), job);
+  else await addDoc(collection(db, 'job_cards'), job);
+};

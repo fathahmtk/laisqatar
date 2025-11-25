@@ -1,37 +1,32 @@
 
-
-import { Contract, ContractStatus, WorkOrder, WorkOrderPriority, WorkOrderStatus, Asset, Translation, Role, Client, Report, Notification, Invoice, InventoryItem, TeamMember, Account, JournalEntry, Project, BOQItem, ProjectCost, Expense } from './types';
+import { 
+  Customer, Site, Equipment, Technician, AMCContract, AMCSchedule, 
+  JobCard, Project, Item, Account, JournalEntry, Translation, Notification, Invoice,
+  Report, Expense, TeamMember
+} from './types';
 
 export const TEXTS: Translation = {
   brand: { en: "Lais Qatar", ar: "ليس قطر" },
   home: { en: "Home", ar: "الرئيسية" },
+  dashboard: { en: "Dashboard", ar: "لوحة التحكم" },
+  login: { en: "Sign In", ar: "تسجيل الدخول" },
   about: { en: "About Us", ar: "من نحن" },
   services: { en: "Services", ar: "خدماتنا" },
-  projects: { en: "Projects", ar: "المشاريع" },
   contact: { en: "Contact Us", ar: "اتصل بنا" },
-  login: { en: "Sign In", ar: "تسجيل الدخول" },
-  dashboard: { en: "Dashboard", ar: "لوحة التحكم" },
-  
-  heroTitle: { en: "Advanced Fire & Safety Solutions", ar: "حلول متقدمة للأمن والسلامة" },
-  heroSubtitle: {
-    en: "Qatar’s premier provider of fire protection systems, installation, and AMC services.",
-    ar: "المزود الرائد في قطر لأنظمة الحماية من الحريق والتركيب وعقود الصيانة."
-  },
   getQuote: { en: "Request Quote", ar: "اطلب عرض سعر" },
   learnMore: { en: "Learn More", ar: "المزيد" },
-
-  dashboard_nav: { en: "Dashboard", ar: "لوحة التحكم" },
-  accounts_nav: { en: "Finance", ar: "المالية" },
-  inventory_nav: { en: "Inventory", ar: "المخزون" },
-  team_nav: { en: "HR & Team", ar: "الموارد البشرية" },
-  contracts_nav: { en: "AMC Contracts", ar: "عقود الصيانة" },
-  clients_nav: { en: "CRM", ar: "العملاء" },
-  assets_nav: { en: "Assets", ar: "الأصول" },
-  workOrders_nav: { en: "Jobs", ar: "الوظائف" },
-  projects_nav: { en: "Projects", ar: "المشاريع" },
-  reports_nav: { en: "Reports", ar: "التقارير" },
-  settings_nav: { en: "Settings", ar: "الإعدادات" },
   
+  // Modules
+  masters_nav: { en: "Master Data", ar: "البيانات الرئيسية" },
+  amc_nav: { en: "AMC Contracts", ar: "عقود الصيانة" },
+  jobs_nav: { en: "Job Cards", ar: "أوامر العمل" },
+  projects_nav: { en: "Projects", ar: "المشاريع" },
+  inventory_nav: { en: "Inventory", ar: "المخزون" },
+  finance_nav: { en: "Finance", ar: "المالية" },
+  revenue: { en: "Revenue", ar: "الإيرادات" },
+  
+  heroTitle: { en: "Advanced Fire & Safety Solutions", ar: "حلول متقدمة للأمن والسلامة" },
+  heroSubtitle: { en: "Qatar’s premier provider of fire protection systems.", ar: "المزود الرائد في قطر لأنظمة الحماية من الحريق." },
   faqTitle: { en: "Frequently Asked Questions", ar: "الأسئلة الشائعة" },
   testimonials: { en: "Trusted by Leaders", ar: "موثوق من قبل القادة" },
   statsClients: { en: "Active Clients", ar: "عملاء نشطين" },
@@ -41,97 +36,83 @@ export const TEXTS: Translation = {
   ctaSubtitle: { en: "Get a free site survey today.", ar: "احصل على مسح مجاني للموقع اليوم." },
 };
 
-// --- MOCK DATA ---
+// --- SEED DATA ---
 
-export const MOCK_ACCOUNTS: Account[] = [
-  { id: '1000', code: '1000', name: 'Cash on Hand', type: 'Asset', balance: 5000 },
-  { id: '1010', code: '1010', name: 'Qatar National Bank', type: 'Asset', balance: 150000 },
-  { id: '1100', code: '1100', name: 'Accounts Receivable', type: 'Asset', balance: 45000 },
-  { id: '1200', code: '1200', name: 'Inventory Asset', type: 'Asset', balance: 75000 },
-  { id: '1500', code: '1500', name: 'Vehicles & Equipment', type: 'Asset', balance: 200000 },
-  { id: '2000', code: '2000', name: 'Accounts Payable', type: 'Liability', balance: 30000 },
-  { id: '2100', code: '2100', name: 'VAT Payable', type: 'Liability', balance: 4500 },
-  { id: '3000', code: '3000', name: 'Owner Equity', type: 'Equity', balance: 100000 },
-  { id: '4000', code: '4000', name: 'Sales Revenue - Projects', type: 'Revenue', balance: 0 },
-  { id: '4100', code: '4100', name: 'Sales Revenue - AMC', type: 'Revenue', balance: 0 },
-  { id: '5000', code: '5000', name: 'Cost of Goods Sold', type: 'Expense', balance: 0 },
-  { id: '6000', code: '6000', name: 'Salaries & Wages', type: 'Expense', balance: 0 },
-  { id: '6100', code: '6100', name: 'Rent Expense', type: 'Expense', balance: 0 },
-  { id: '6200', code: '6200', name: 'Vehicle Fuel', type: 'Expense', balance: 0 },
+export const MOCK_CUSTOMERS: Customer[] = [
+  { id: 'CUST-001', code: 'C001', name: 'Al Hamad Towers', type: 'Corporate', email: 'info@alhamad.qa', phone: '44001111', address: 'West Bay, Doha', paymentTermsDays: 30, creditLimit: 50000 },
+  { id: 'CUST-002', code: 'C002', name: 'Doha Logistics Hub', type: 'Industrial', email: 'ops@dohalog.qa', phone: '44002222', address: 'Industrial Area, St 41', paymentTermsDays: 45, creditLimit: 100000 },
 ];
 
-export const MOCK_JOURNALS: JournalEntry[] = [
-  {
-    id: 'JE-001', date: '2024-05-01', description: 'Opening Balance', reference: 'OB-2024', status: 'Posted',
-    lines: [
-      { accountId: '1010', accountName: 'Qatar National Bank', debit: 150000, credit: 0 },
-      { accountId: '3000', accountName: 'Owner Equity', debit: 0, credit: 150000 }
-    ]
-  },
-  {
-    id: 'JE-002', date: '2024-05-02', description: 'Project Material Purchase', reference: 'INV-SUP-99', status: 'Posted',
-    lines: [
-      { accountId: '1200', accountName: 'Inventory Asset', debit: 5000, credit: 0 },
-      { accountId: '2000', accountName: 'Accounts Payable', debit: 0, credit: 5000 }
-    ]
-  }
+export const MOCK_SITES: Site[] = [
+  { id: 'SITE-001', customerId: 'CUST-001', code: 'S001', name: 'Al Hamad Tower A', address: 'West Bay', category: 'Commercial', contactPerson: 'Mr. Khalid', contactMobile: '55551234' },
+  { id: 'SITE-002', customerId: 'CUST-002', code: 'S002', name: 'Warehouse 4', address: 'Industrial Area', category: 'Industrial', contactPerson: 'Mr. John', contactMobile: '66669876' },
+];
+
+export const MOCK_EQUIPMENT: Equipment[] = [
+  { id: 'EQ-001', siteId: 'SITE-001', code: 'EQ-FA-01', category: 'Fire Alarm Panel', brand: 'Simplex', model: '4100ES', serialNumber: 'SN-998877', installDate: '2022-01-01', nextServiceDue: '2024-06-01', isUnderAmc: true },
+  { id: 'EQ-002', siteId: 'SITE-002', code: 'EQ-PUMP-01', category: 'Pump', brand: 'Grundfos', model: 'FireSet', serialNumber: 'SN-112233', installDate: '2023-05-15', nextServiceDue: '2024-05-15', isUnderAmc: true },
+];
+
+export const MOCK_AMC_CONTRACTS: AMCContract[] = [
+  { id: 'AMC-2024-001', code: 'AMC-001', customerId: 'CUST-001', startDate: '2024-01-01', endDate: '2024-12-31', frequency: 'Quarterly', contractValue: 45000, billingCycle: 'Quarterly', status: 'Active', sites: ['SITE-001'] },
+];
+
+export const MOCK_AMC_SCHEDULES: AMCSchedule[] = [
+  { id: 'SCH-001', contractId: 'AMC-2024-001', siteId: 'SITE-001', plannedDate: '2024-04-01', status: 'Completed', jobCardId: 'JOB-1001' },
+  { id: 'SCH-002', contractId: 'AMC-2024-001', siteId: 'SITE-001', plannedDate: '2024-07-01', status: 'Planned' },
+];
+
+export const MOCK_JOBS: JobCard[] = [
+  { id: 'JOB-1001', jobNumber: 'J-24-1001', type: 'Preventive', customerId: 'CUST-001', siteId: 'SITE-001', contractId: 'AMC-2024-001', priority: 'Normal', status: 'Completed', scheduledDate: '2024-04-01', description: 'Q1 Maintenance', isAmcCovered: true, checklist: [{item: 'Check Panel', checked: true}] },
+  { id: 'JOB-1002', jobNumber: 'J-24-1002', type: 'Corrective', customerId: 'CUST-002', siteId: 'SITE-002', priority: 'High', status: 'Open', scheduledDate: '2024-05-15', description: 'Pump failure alarm', isAmcCovered: false, checklist: [{item: 'Inspect Pump', checked: false}] },
 ];
 
 export const MOCK_PROJECTS: Project[] = [
-  { id: 'PRJ-2024-01', name: 'Mall of Qatar Fire System Upgrade', clientId: 'CL-001', clientName: 'Mall of Qatar', status: 'In Progress', startDate: '2024-01-10', endDate: '2024-08-30', budget: 500000, totalCost: 125000, manager: 'Eng. Karim', progress: 35 },
-  { id: 'PRJ-2024-02', name: 'Pearl Tower B Installation', clientId: 'CL-003', clientName: 'Pearl Residency', status: 'Planning', startDate: '2024-06-01', endDate: '2024-12-01', budget: 850000, totalCost: 5000, manager: 'Eng. John', progress: 5 }
+  { id: 'PRJ-001', code: 'P-24-001', name: 'Mall Fire System Upgrade', customerId: 'CUST-001', siteId: 'SITE-001', startDate: '2024-02-01', endDate: '2024-08-01', value: 250000, budget: 180000, totalCost: 45000, status: 'InProgress', managerId: 'USER-001' },
 ];
 
-export const MOCK_CONTRACTS: Contract[] = [
-  { id: 'AMC-2024-001', clientId: 'CL-001', clientName: 'Al Hamad Towers', type: 'AMC Gold', startDate: '2024-01-01', endDate: '2025-01-01', status: ContractStatus.ACTIVE, value: 45000, assetsCount: 120, paymentTerms: 'Quarterly', visitsPerYear: 4, slaResponseTimeHours: 2 },
-  { id: 'AMC-2024-002', clientId: 'CL-002', clientName: 'Doha Logistics Hub', type: 'AMC Silver', startDate: '2024-02-15', endDate: '2025-02-15', status: ContractStatus.ACTIVE, value: 25000, assetsCount: 45, paymentTerms: 'Bi-Annual', visitsPerYear: 2, slaResponseTimeHours: 4 },
+export const MOCK_ITEMS: Item[] = [
+  { id: 'ITM-001', code: 'FA-SD-01', name: 'Optical Smoke Detector', category: 'Sensors', stockQty: 150, minLevel: 50, costPrice: 80, sellingPrice: 160, location: 'Store A' },
+  { id: 'ITM-002', code: 'FF-EXT-CO2', name: '5kg CO2 Extinguisher', category: 'Extinguishers', stockQty: 15, minLevel: 20, costPrice: 200, sellingPrice: 450, location: 'Showroom' },
 ];
 
-export const MOCK_WORK_ORDERS: WorkOrder[] = [
-  { id: 'WO-1023', title: 'Fire Alarm Loop Failure', type: 'Corrective', location: 'Al Hamad Towers - Floor 3', priority: WorkOrderPriority.CRITICAL, status: WorkOrderStatus.OPEN, date: '2024-05-10', assignedTo: 'Ahmed Ali' },
-  { id: 'WO-1024', title: 'Quarterly Sprinkler Check', type: 'Preventive', contractId: 'AMC-2024-002', location: 'Doha Logistics Hub', priority: WorkOrderPriority.MEDIUM, status: WorkOrderStatus.IN_PROGRESS, date: '2024-05-11', assignedTo: 'John Doe', checklist: [{item: 'Pressure Gauge', checked: true}, {item: 'Valve Status', checked: false}] },
+export const MOCK_ACCOUNTS: Account[] = [
+  { id: 'ACC-1000', code: '1000', name: 'Cash', type: 'Asset', balance: 5000 },
+  { id: 'ACC-1100', code: '1100', name: 'Bank - QNB', type: 'Asset', balance: 150000 },
+  { id: 'ACC-1200', code: '1200', name: 'Accounts Receivable', type: 'Asset', balance: 45000 },
+  { id: 'ACC-2000', code: '2000', name: 'Accounts Payable', type: 'Liability', balance: 25000 },
+  { id: 'ACC-4000', code: '4000', name: 'Revenue - AMC', type: 'Revenue', balance: 90000 },
+  { id: 'ACC-5000', code: '5000', name: 'Cost of Sales', type: 'Expense', balance: 35000 },
 ];
 
-export const MOCK_CLIENTS: Client[] = [
-  { id: 'CL-001', name: 'Al Hamad Towers', contactPerson: 'Mr. Khalid', email: 'khalid@alhamad.qa', phone: '+974 5555 1234', location: 'West Bay', contractStatus: ContractStatus.ACTIVE, balance: 12500 },
-  { id: 'CL-002', name: 'Doha Logistics Hub', contactPerson: 'Ms. Sarah', email: 'sarah@dohalog.qa', phone: '+974 6666 9876', location: 'Industrial Area', contractStatus: ContractStatus.ACTIVE, balance: 0 },
-  { id: 'CL-003', name: 'Pearl Residency', contactPerson: 'Mr. John', email: 'john@pearlres.qa', phone: '+974 3333 4567', location: 'The Pearl', contractStatus: ContractStatus.PENDING, balance: 45000 },
+export const MOCK_JOURNALS: JournalEntry[] = [
+  { id: 'JE-001', date: '2024-05-01', description: 'AMC Invoice Inv-001', reference: 'INV-001', status: 'Posted', lines: [
+    { accountId: 'ACC-1200', accountName: 'Accounts Receivable', debit: 11250, credit: 0 },
+    { accountId: 'ACC-4000', accountName: 'Revenue - AMC', debit: 0, credit: 11250 }
+  ]}
 ];
 
 export const MOCK_INVOICES: Invoice[] = [
-  { id: 'INV-2024-001', clientId: 'CL-001', clientName: 'Al Hamad Towers', issueDate: '2024-04-25', dueDate: '2024-05-25', amount: 12500, status: 'PENDING', items: [{description: 'Q2 AMC Payment', amount: 12000}, {description: 'Spare Parts', amount: 500}] },
-];
-
-export const MOCK_EXPENSES: Expense[] = [
-  { id: 'EXP-001', date: '2024-05-15', description: 'Office Supplies', category: 'Office', amount: 450, approvedBy: 'John Smith' },
-  { id: 'EXP-002', date: '2024-05-18', description: 'Vehicle Maintenance', category: 'Transport', amount: 1200, approvedBy: 'Ahmed Ali' },
-];
-
-export const MOCK_INVENTORY: InventoryItem[] = [
-  { id: 'PART-001', sku: 'SD-OPT-01', name: 'Optical Smoke Detector', category: 'Sensors', quantity: 150, minLevel: 50, unitPrice: 80, salesPrice: 150, location: 'Warehouse A-12' },
-  { id: 'PART-002', sku: 'EXT-CO2-5KG', name: '5KG CO2 Extinguisher', category: 'Extinguishers', quantity: 12, minLevel: 20, unitPrice: 200, salesPrice: 450, location: 'Showroom' },
-];
-
-export const MOCK_TEAM: TeamMember[] = [
-  { id: 'EMP-001', name: 'John Smith', role: 'Operations Manager', department: 'Management', email: 'john.s@laisqatar.com', phone: '+974 3333 1111', status: 'Active', joinDate: '2019-03-15' },
-  { id: 'EMP-002', name: 'Ahmed Ali', role: 'Technician', department: 'Field Service', email: 'ahmed.a@laisqatar.com', phone: '+974 5555 2222', status: 'Active', joinDate: '2020-06-01' },
+  { id: 'INV-001', number: 'INV-24-001', customerId: 'CUST-001', date: '2024-05-01', dueDate: '2024-05-31', totalAmount: 11250, status: 'Posted', items: [{description: 'Q2 AMC Services', amount: 11250}]}
 ];
 
 export const MOCK_REPORTS: Report[] = [
-  { id: 'RPT-2024-001', title: 'Q1 Compliance Audit', type: 'Compliance', date: '2024-03-31', status: 'Ready', size: '2.4 MB' },
+  { id: 'RPT-001', title: 'Monthly Maintenance Summary', type: 'PDF', date: '2024-05-01', size: '2.5 MB', status: 'Ready' }
+];
+
+export const MOCK_EXPENSES: Expense[] = [
+  { id: 'EXP-001', date: '2024-05-05', description: 'Fuel for Fleet', category: 'Transport', amount: 1500, approvedBy: 'Admin' }
+];
+
+export const MOCK_TEAM: TeamMember[] = [
+  { id: 'EMP-001', name: 'Ahmed Ali', role: 'Technician', department: 'Field Service', status: 'Active', email: 'ahmed@lais.qa', phone: '55001122' }
 ];
 
 export const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: 'N-001', title: 'SLA Breach Warning', message: 'Critical Response Time exceeded for WO-1023', type: 'SLA_BREACH', timestamp: '15 mins ago', read: false },
-];
-
-export const MOCK_ASSETS: Asset[] = [
-  { id: 'AST-001', name: 'Pump Room Main Panel', type: 'Control Panel', location: 'Al Hamad Towers - B1', lastInspection: '2024-04-01', nextInspection: '2024-07-01', status: 'Operational' },
+  { id: '1', title: 'AMC Schedule', message: '5 Contracts due for scheduling next month', read: false, type: 'INFO', timestamp: '2h ago' },
+  { id: '2', title: 'SLA Warning', message: 'Job #1002 is overdue', read: false, type: 'SLA_BREACH', timestamp: '10m ago' },
 ];
 
 export const FAQ_ITEMS = [
-  {
-    question: { en: "What does a Fire Safety AMC cover?", ar: "ماذا يغطي عقد الصيانة السنوي؟" },
-    answer: { en: "Quarterly maintenance, 24/7 support, and QCDD certification.", ar: "صيانة ربع سنوية ودعم على مدار الساعة وشهادة الدفاع المدني." }
-  },
+  { question: { en: "What does AMC cover?", ar: "ماذا يغطي العقد؟" }, answer: { en: "Preventive maintenance & emergency calls.", ar: "الصيانة الوقائية وطوارئ." } }
 ];

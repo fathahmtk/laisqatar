@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, TrendingUp, TrendingDown, FileText, Download, 
@@ -24,8 +25,8 @@ export const Accounts: React.FC = () => {
   }, []);
 
   // Financial Stats
-  const totalIncome = invoices.reduce((sum, inv) => inv.status === 'PAID' ? sum + inv.amount : sum, 0);
-  const pendingIncome = invoices.reduce((sum, inv) => inv.status !== 'PAID' ? sum + inv.amount : sum, 0);
+  const totalIncome = invoices.reduce((sum, inv) => inv.status === 'Paid' ? sum + inv.totalAmount : sum, 0);
+  const pendingIncome = invoices.reduce((sum, inv) => inv.status !== 'Paid' ? sum + inv.totalAmount : sum, 0);
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const netProfit = totalIncome - totalExpenses;
 
@@ -43,10 +44,10 @@ export const Accounts: React.FC = () => {
 
   const InvoiceBadge = ({ status }: { status: string }) => {
     switch (status) {
-      case 'PAID': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle2 size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Paid</span>;
-      case 'PENDING': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Pending</span>;
-      case 'OVERDUE': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><AlertCircle size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Overdue</span>;
-      default: return null;
+      case 'Paid': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle2 size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Paid</span>;
+      case 'Posted': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Posted</span>;
+      case 'Overdue': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><AlertCircle size={12} className="mr-1 rtl:ml-1 rtl:mr-0"/> Overdue</span>;
+      default: return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>;
     }
   };
 
@@ -94,7 +95,7 @@ export const Accounts: React.FC = () => {
                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><TrendingUp size={20} /></div>
               </div>
               <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalIncome)}</p>
-              <span className="text-xs text-blue-600 font-medium flex items-center mt-2">from {invoices.filter(i => i.status === 'PAID').length} invoices</span>
+              <span className="text-xs text-blue-600 font-medium flex items-center mt-2">from {invoices.filter(i => i.status === 'Paid').length} invoices</span>
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
@@ -112,7 +113,7 @@ export const Accounts: React.FC = () => {
                  <div className="p-2 bg-yellow-50 text-yellow-600 rounded-lg"><Clock size={20} /></div>
               </div>
               <p className="text-3xl font-bold text-gray-900">{formatCurrency(pendingIncome)}</p>
-              <span className="text-xs text-yellow-600 font-medium flex items-center mt-2">{invoices.filter(i => i.status !== 'PAID').length} pending invoices</span>
+              <span className="text-xs text-yellow-600 font-medium flex items-center mt-2">{invoices.filter(i => i.status !== 'Paid').length} pending invoices</span>
             </div>
           </div>
 
@@ -177,7 +178,7 @@ export const Accounts: React.FC = () => {
               <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4">Invoice #</th>
-                  <th className="px-6 py-4">Client</th>
+                  <th className="px-6 py-4">Client ID</th>
                   <th className="px-6 py-4">Issue Date</th>
                   <th className="px-6 py-4">Due Date</th>
                   <th className="px-6 py-4">Amount</th>
@@ -189,10 +190,10 @@ export const Accounts: React.FC = () => {
                 {invoices.map(inv => (
                   <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-red-600">{inv.id}</td>
-                    <td className="px-6 py-4 text-gray-900 font-medium">{inv.clientName}</td>
-                    <td className="px-6 py-4">{inv.issueDate}</td>
+                    <td className="px-6 py-4 text-gray-900 font-medium">{inv.customerId}</td>
+                    <td className="px-6 py-4">{inv.date}</td>
                     <td className="px-6 py-4">{inv.dueDate}</td>
-                    <td className="px-6 py-4 font-mono">{formatCurrency(inv.amount)}</td>
+                    <td className="px-6 py-4 font-mono">{formatCurrency(inv.totalAmount)}</td>
                     <td className="px-6 py-4"><InvoiceBadge status={inv.status} /></td>
                     <td className="px-6 py-4 text-right rtl:text-left">
                       <button className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded">

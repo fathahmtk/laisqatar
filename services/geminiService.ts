@@ -1,5 +1,6 @@
+
 import { GoogleGenAI } from "@google/genai";
-import { Contract, WorkOrder } from "../types";
+import { AMCContract, JobCard } from "../types";
 
 const GEMINI_API_KEY = process.env.API_KEY || ''; 
 
@@ -8,8 +9,8 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-QA', { style: 'currency', currency: 'QAR' }).format(val);
 
 export const generateDashboardInsights = async (
-  contracts: Contract[],
-  workOrders: WorkOrder[]
+  contracts: AMCContract[],
+  workOrders: JobCard[]
 ): Promise<string> => {
   if (!GEMINI_API_KEY) {
     return "AI Insights unavailable: API Key not configured.";
@@ -19,15 +20,15 @@ export const generateDashboardInsights = async (
   
   // Prepare a data summary for the model
   const dataContext = `
-    Active Contracts: ${contracts.filter(c => c.status === 'ACTIVE').length}
-    Pending Contracts: ${contracts.filter(c => c.status === 'PENDING').length}
-    Total Contract Value: ${formatCurrency(contracts.reduce((sum, c) => sum + c.value, 0))}
+    Active Contracts: ${contracts.filter(c => c.status === 'Active').length}
+    Pending Contracts: ${contracts.filter(c => c.status === 'Draft').length}
+    Total Contract Value: ${formatCurrency(contracts.reduce((sum, c) => sum + c.contractValue, 0))}
     
-    Open Work Orders: ${workOrders.filter(w => w.status === 'OPEN').length}
-    Critical Work Orders: ${workOrders.filter(w => w.priority === 'CRITICAL').length}
+    Open Work Orders: ${workOrders.filter(w => w.status === 'Open').length}
+    Critical Work Orders: ${workOrders.filter(w => w.priority === 'Critical').length}
     
     Recent Critical Issues:
-    ${workOrders.filter(w => w.priority === 'CRITICAL').map(w => `- ${w.title} at ${w.location}`).join('\n')}
+    ${workOrders.filter(w => w.priority === 'Critical').map(w => `- ${w.description} at ${w.siteId}`).join('\n')}
   `;
 
   const prompt = `
@@ -51,13 +52,13 @@ export const generateDashboardInsights = async (
   }
 };
 
-export const generateTechnicianGuidance = async (workOrder: WorkOrder): Promise<string> => {
+export const generateTechnicianGuidance = async (workOrder: JobCard): Promise<string> => {
     if (!GEMINI_API_KEY) return "AI Guidance unavailable.";
 
     const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     const prompt = `
       Provide a short checklist (max 3 items) for a technician handling a fire safety task.
-      Task: ${workOrder.title}
+      Task: ${workOrder.description}
       Type: ${workOrder.priority} priority
       Keep it safety-focused.
     `;

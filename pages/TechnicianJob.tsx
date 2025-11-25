@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
-import { WorkOrder, WorkOrderStatus } from '../types';
+import { JobCard } from '../types';
 import { Camera, CheckSquare, PenTool, Save, ArrowLeft, MapPin } from 'lucide-react';
-import { MOCK_WORK_ORDERS } from '../constants';
+import { MOCK_JOBS } from '../constants';
 
 export const TechnicianJob: React.FC = () => {
-  const [selectedJob, setSelectedJob] = useState<WorkOrder | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobCard | null>(null);
   const [checklist, setChecklist] = useState<{item: string, checked: boolean}[]>([]);
 
-  const jobs = MOCK_WORK_ORDERS;
+  const jobs = MOCK_JOBS;
 
-  const handleStartJob = (job: WorkOrder) => {
+  const handleStartJob = (job: JobCard) => {
     setSelectedJob(job);
     setChecklist(job.checklist || []);
   };
@@ -31,8 +31,8 @@ export const TechnicianJob: React.FC = () => {
         
         <div className="p-4 space-y-6">
            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <h2 className="font-bold text-xl text-gray-900">{selectedJob.title}</h2>
-              <p className="text-gray-500 text-sm flex items-center mt-2"><MapPin size={14} className="mr-1"/> {selectedJob.location}</p>
+              <h2 className="font-bold text-xl text-gray-900">{selectedJob.description}</h2>
+              <p className="text-gray-500 text-sm flex items-center mt-2"><MapPin size={14} className="mr-1"/> {selectedJob.siteId}</p>
               <div className="mt-4 flex gap-2">
                  <button className="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold text-sm">Start Timer</button>
                  <button className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-bold text-sm">On Hold</button>
@@ -86,13 +86,13 @@ export const TechnicianJob: React.FC = () => {
        {jobs.map(job => (
          <div key={job.id} onClick={() => handleStartJob(job)} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm active:scale-95 transition-transform">
             <div className="flex justify-between">
-               <span className="font-bold text-gray-900">{job.title}</span>
+               <span className="font-bold text-gray-900">{job.description}</span>
                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">{job.priority}</span>
             </div>
-            <p className="text-gray-500 text-sm mt-1">{job.location}</p>
+            <p className="text-gray-500 text-sm mt-1">{job.siteId}</p>
             <div className="mt-3 flex justify-between text-xs text-gray-400">
                <span>{job.id}</span>
-               <span>{job.date}</span>
+               <span>{job.scheduledDate}</span>
             </div>
          </div>
        ))}

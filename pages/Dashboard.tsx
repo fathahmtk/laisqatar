@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
@@ -5,7 +6,7 @@ import {
 import { AlertTriangle, TrendingUp, Users, CheckCircle, AlertOctagon } from 'lucide-react';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
 import { Language } from '../types';
-import { getContracts, getWorkOrders, getInvoices } from '../services/db';
+import { getAMCContracts, getJobs, getInvoices } from '../services/db';
 
 interface Props {
   lang: Language;
@@ -29,15 +30,15 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
     const loadDashboardData = async () => {
       // Fetch Collections
       const [contracts, workOrders, invoices] = await Promise.all([
-        getContracts(),
-        getWorkOrders(),
+        getAMCContracts(),
+        getJobs(),
         getInvoices()
       ]);
 
       // Calculate Stats
-      const activeContracts = contracts.filter(c => c.status === 'ACTIVE').length;
-      const critical = workOrders.filter(w => w.priority === 'CRITICAL').length;
-      const totalRevenue = invoices.reduce((sum, inv) => inv.status === 'PAID' ? sum + inv.amount : sum, 0);
+      const activeContracts = contracts.filter(c => c.status === 'Active').length;
+      const critical = workOrders.filter(w => w.priority === 'Critical').length;
+      const totalRevenue = invoices.reduce((sum, inv) => inv.status === 'Paid' ? sum + inv.totalAmount : sum, 0);
 
       setStats({
         activeContracts,
@@ -55,8 +56,8 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
          { name: 'May', revenue: totalRevenue * 0.3, jobs: workOrders.length * 0.2 }
       ]);
 
-      const preventive = workOrders.filter(w => w.title.toLowerCase().includes('check') || w.title.toLowerCase().includes('inspection')).length;
-      const emergency = workOrders.filter(w => w.priority === 'CRITICAL' || w.priority === 'HIGH').length;
+      const preventive = workOrders.filter(w => w.description.toLowerCase().includes('check') || w.description.toLowerCase().includes('inspection')).length;
+      const emergency = workOrders.filter(w => w.priority === 'Critical' || w.priority === 'High').length;
       
       setPieData([
         { name: 'Preventive', value: preventive || 5 },
