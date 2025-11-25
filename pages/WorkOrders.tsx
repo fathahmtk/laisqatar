@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  CheckCircle, Clock, MapPin, AlertCircle, Camera, PenTool, Search, Plus, X, Filter, Loader2 
+  CheckCircle, Clock, MapPin, AlertCircle, Camera, PenTool, Search, Plus, X, Filter, Loader2, Wrench
 } from 'lucide-react';
 import { Role, Language, WorkOrder, WorkOrderStatus, WorkOrderPriority } from '../types';
 import { generateTechnicianGuidance } from '../services/geminiService';
 import { getWorkOrders, createWorkOrder } from '../services/db';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
-  role: Role;
   lang: Language;
 }
 
-export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
+export const WorkOrders: React.FC<Props> = ({ lang }) => {
+  const { userRole } = useAuth();
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<WorkOrder | null>(null);
@@ -42,7 +43,6 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
     const fetchOrders = async () => {
       setLoading(true);
       const data = await getWorkOrders();
-      // Sort by date desc
       setWorkOrders(data.sort((a,b) => b.date.localeCompare(a.date)));
       setLoading(false);
     };
@@ -51,7 +51,7 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
 
   const handleSelectOrder = async (order: WorkOrder) => {
     setSelectedOrder(order);
-    if (role === Role.TECHNICIAN) {
+    if (userRole === Role.TECHNICIAN) {
       setLoadingGuidance(true);
       const help = await generateTechnicianGuidance(order);
       setGuidance(help);
@@ -62,7 +62,7 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const order: WorkOrder = {
-      id: `WO-${1000 + workOrders.length + 1}`, // Simple ID gen
+      id: `WO-${1000 + workOrders.length + 1}`,
       title: newOrder.title,
       location: newOrder.location,
       priority: newOrder.priority,
@@ -71,11 +71,9 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
       assignedTo: newOrder.assignedTo || 'Unassigned'
     };
 
-    // Optimistic update
     setWorkOrders([order, ...workOrders]);
     setIsCreateModalOpen(false);
     
-    // DB Update
     await createWorkOrder(order);
     setNewOrder({ title: '', location: '', priority: WorkOrderPriority.MEDIUM, assignedTo: '' });
   };
@@ -86,20 +84,6 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
     } else {
       setSelectedStatuses([...selectedStatuses, status]);
     }
-  };
-
-  const togglePriority = (priority: WorkOrderPriority) => {
-    if (selectedPriorities.includes(priority)) {
-      setSelectedPriorities(selectedPriorities.filter(p => p !== priority));
-    } else {
-      setSelectedPriorities([...selectedPriorities, priority]);
-    }
-  };
-
-  const clearFilters = () => {
-    setSelectedStatuses([]);
-    setSelectedPriorities([]);
-    setSearchTerm('');
   };
 
   const filteredOrders = workOrders.filter(wo => {
@@ -131,12 +115,11 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
 
   return (
     <div className="flex h-[calc(100vh-8rem)] relative">
-      {/* List Column */}
       <div className={`${selectedOrder ? 'hidden md:block md:w-1/3' : 'w-full'} bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all`}>
         <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col gap-4">
            <div className="flex justify-between items-center">
              <h3 className="font-bold text-gray-700">All Orders</h3>
-             {role === Role.ADMIN && (
+             {userRole === Role.ADMIN && (
                <button 
                  onClick={() => setIsCreateModalOpen(true)}
                  className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors shadow-sm"
@@ -170,8 +153,7 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
                <Filter size={18} />
              </button>
            </div>
-
-           {/* Filter Panel (Same as before) */}
+           
            {isFilterOpen && (
              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm animate-in fade-in slide-in-from-top-2">
                 <div className="mb-3">
@@ -192,7 +174,6 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
                     ))}
                   </div>
                 </div>
-                {/* ... Priority Filters (Same as before) ... */}
              </div>
            )}
         </div>
@@ -230,10 +211,8 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
         </div>
       </div>
 
-      {/* Detail View (Same as before but using selectedOrder) */}
       {selectedOrder ? (
         <div className="flex-1 md:ltr:ml-6 md:rtl:mr-6 bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col shadow-sm">
-           {/* ... Header ... */}
            <div className="p-6 border-b border-gray-100 flex justify-between items-start bg-white">
             <div>
                <div className="flex items-center space-x-2 rtl:space-x-reverse mb-2">
@@ -249,8 +228,7 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
           </div>
           
           <div className="flex-1 overflow-y-auto p-6 bg-white">
-            {/* AI Technician Helper */}
-            {role === Role.TECHNICIAN && (
+            {userRole === Role.TECHNICIAN && (
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-5 mb-8 shadow-sm">
                  <h4 className="flex items-center text-blue-900 font-bold text-sm mb-3">
                    <AlertCircle size={18} className="mr-2 rtl:ml-2 rtl:mr-0 text-blue-600" />
@@ -268,7 +246,6 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
                  )}
               </div>
             )}
-            {/* ... Rest of Details ... */}
              <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <h3 className="font-bold text-gray-900 mb-4 text-xs uppercase tracking-wider text-gray-500">Tasks Checklist</h3>
@@ -309,23 +286,18 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
         </div>
       )}
 
-      {/* Create Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsCreateModalOpen(false)}></div>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
               <h3 className="font-bold text-lg text-gray-900">Create New Work Order</h3>
-              <button 
-                onClick={() => setIsCreateModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 p-1 rounded-full transition-colors"
-              >
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 p-1 rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
             
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-5">
-              {/* Form fields same as before */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Issue Title</label>
                 <input required type="text" value={newOrder.title} onChange={e => setNewOrder({...newOrder, title: e.target.value})} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-red-500 outline-none text-left rtl:text-right" />
@@ -360,8 +332,3 @@ export const WorkOrders: React.FC<Props> = ({ role, lang }) => {
     </div>
   );
 };
-const Wrench = ({size, className}: {size:number, className?:string}) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-  </svg>
-);

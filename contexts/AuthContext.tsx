@@ -2,13 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { Role } from '../types';
+import { syncUser } from '../services/db';
 
 interface AuthContextType {
   currentUser: User | null;
   userRole: Role;
   loading: boolean;
   logout: () => Promise<void>;
-  setUserRole: (role: Role) => void; // Only for demo purposes to switch views
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -22,17 +22,20 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  // In a real app, role is fetched from a 'users' collection in Firestore based on UID.
-  // For this prototype, we default to ADMIN but allow switching.
-  const [userRole, setUserRole] = useState<Role>(Role.ADMIN);
+  const [userRole, setUserRole] = useState<Role>(Role.PUBLIC);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        // Sync user with Firestore to get their Role
+        const role = await syncUser(user);
+        setUserRole(role);
+      } else {
+        setCurrentUser(null);
+        setUserRole(Role.PUBLIC);
+      }
       setLoading(false);
-      // Here you would typically fetch the user's role from Firestore
-      // const docRef = doc(db, "users", user.uid);
-      // ...
     });
 
     return unsubscribe;
@@ -46,7 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     currentUser,
     userRole,
-    setUserRole,
     loading,
     logout
   };

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, FileText, Wrench, Users, 
-  Settings, Menu, X, Bell, LogOut, PhoneCall, Mail, MapPin, Facebook, Twitter, Linkedin, Box, Check, AlertTriangle, Info, CheckCircle2,
+  Settings, Menu, X, Bell, LogOut, PhoneCall, MapPin, Facebook, Twitter, Linkedin, Box, AlertTriangle, Info, CheckCircle2,
   PieChart, Package, Briefcase
 } from 'lucide-react';
 import { Role, Language, Notification } from '../types';
@@ -12,11 +12,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
-  role: Role;
   lang: Language;
   setLang: (l: Language) => void;
-  setRole: (r: Role) => void;
-  isAuthenticated: boolean;
 }
 
 const NotificationItem: React.FC<{ notif: Notification }> = ({ notif }) => {
@@ -50,7 +47,7 @@ const NotificationItem: React.FC<{ notif: Notification }> = ({ notif }) => {
   );
 };
 
-export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, setRole, isAuthenticated }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -58,9 +55,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
   const notificationRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, userRole, logout } = useAuth();
   
-  const isPublic = role === Role.PUBLIC;
+  const isPublic = !currentUser || userRole === Role.PUBLIC;
 
   // Sync dir and lang attributes
   useEffect(() => {
@@ -74,7 +71,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close notifications on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
@@ -87,10 +83,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -100,7 +92,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
     }
   };
 
-  // If we are on the login page, render only children
   if (location.pathname === '/login') {
     return <div className="font-sans">{children}</div>;
   }
@@ -119,7 +110,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
     </Link>
   );
 
-  // ... PublicHeader and Footer components remain same ...
   const PublicHeader = () => (
     <header 
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -205,7 +195,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
                Lais Qatar is your trusted partner for comprehensive fire safety solutions, delivering excellence in installation, maintenance, and compliance for over a decade.
              </p>
           </div>
-          {/* ... Rest of footer ... */}
           <div>
             <h4 className="text-white font-bold mb-8 text-lg">{TEXTS.contact[lang]}</h4>
             <ul className="space-y-6 text-sm">
@@ -246,11 +235,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
       <div className="p-4 overflow-y-auto h-[calc(100vh-4rem)]">
         <div className="mb-8">
           <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-            {role === Role.ADMIN ? 'Administration' : role === Role.TECHNICIAN ? 'Field Operations' : 'Client Portal'}
+            {userRole === Role.ADMIN ? 'Administration' : userRole === Role.TECHNICIAN ? 'Field Operations' : 'Client Portal'}
           </p>
           <div className="space-y-1">
             <NavItem to="/dashboard" icon={LayoutDashboard} label={TEXTS.dashboard[lang]} />
-            {role === Role.ADMIN && (
+            {userRole === Role.ADMIN && (
               <>
                 <NavItem to="/accounts" icon={PieChart} label={TEXTS.accounts[lang]} />
                 <NavItem to="/inventory" icon={Package} label={TEXTS.inventory[lang]} />
@@ -260,14 +249,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
                 <NavItem to="/assets" icon={Box} label={TEXTS.assets[lang]} />
               </>
             )}
-            {role === Role.TECHNICIAN && (
+            {userRole === Role.TECHNICIAN && (
                 <>
                   <NavItem to="/assets" icon={Box} label={TEXTS.assets[lang]} />
                   <NavItem to="/inventory" icon={Package} label={TEXTS.inventory[lang]} />
                 </>
             )}
-            {role !== Role.CLIENT && <NavItem to="/work-orders" icon={Wrench} label={TEXTS.workOrders[lang]} />}
-            {(role === Role.ADMIN || role === Role.CLIENT) && <NavItem to="/reports" icon={FileText} label={TEXTS.reports[lang]} />}
+            {userRole !== Role.CLIENT && <NavItem to="/work-orders" icon={Wrench} label={TEXTS.workOrders[lang]} />}
+            {(userRole === Role.ADMIN || userRole === Role.CLIENT) && <NavItem to="/reports" icon={FileText} label={TEXTS.reports[lang]} />}
             
             <NavItem to="/settings" icon={Settings} label={TEXTS.settings[lang]} />
           </div>
@@ -311,7 +300,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
                <Menu size={20} />
              </button>
              <h2 className="text-lg font-semibold text-gray-800 hidden sm:block">
-               {TEXTS.brand[lang]} <span className="text-gray-300 font-light mx-2">|</span> <span className="text-gray-500 text-sm font-medium">{role === Role.ADMIN ? 'Admin Console' : role === Role.TECHNICIAN ? 'Field App' : 'My Account'}</span>
+               {TEXTS.brand[lang]} <span className="text-gray-300 font-light mx-2">|</span> <span className="text-gray-500 text-sm font-medium">{userRole === Role.ADMIN ? 'Admin Console' : userRole === Role.TECHNICIAN ? 'Field App' : 'My Account'}</span>
              </h2>
            </div>
            
@@ -327,7 +316,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
                    <span className="absolute top-1.5 right-1.5 rtl:right-auto rtl:left-1.5 w-2 h-2 bg-red-600 rounded-full border border-white ring-2 ring-white animate-pulse"></span>
                  )}
                </button>
-               {/* ... Notification Dropdown ... */}
                {notificationsOpen && (
                  <div className="absolute top-full right-0 rtl:left-0 rtl:right-auto mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 origin-top-right rtl:origin-top-left">
                     <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
@@ -345,10 +333,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, role, lang, setLang, s
              <div className="flex items-center space-x-3 rtl:space-x-reverse pl-6 rtl:pl-0 rtl:pr-6 border-l rtl:border-l-0 rtl:border-r border-gray-200">
                <div className="text-right rtl:text-left hidden sm:block leading-tight">
                  <p className="text-sm font-bold text-gray-800 truncate max-w-[120px]">{currentUser?.email || 'User'}</p>
-                 <p className="text-xs text-gray-500 font-medium">{role}</p>
+                 <p className="text-xs text-gray-500 font-medium">{userRole}</p>
                </div>
                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold border-2 border-white shadow-md">
-                  {currentUser?.email?.[0].toUpperCase() || role[0]}
+                  {currentUser?.email?.[0].toUpperCase() || 'U'}
                </div>
              </div>
            </div>

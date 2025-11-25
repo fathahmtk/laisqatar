@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
@@ -19,38 +17,31 @@ import { Login } from './pages/Login';
 import { Team } from './pages/Team';
 import { Settings } from './pages/Settings';
 import { Role, Language } from './types';
+import { useAuth } from './contexts/AuthContext';
 
 const App = () => {
-  const [role, setRole] = useState<Role>(Role.PUBLIC);
   const [lang, setLang] = useState<Language>('en');
+  const { userRole, loading } = useAuth();
+  const isAuthenticated = userRole !== Role.PUBLIC;
 
-  // Custom function to handle Role change (sign out vs sign in)
-  const handleRoleChange = (newRole: Role) => {
-    setRole(newRole);
-  };
-
-  const handleLogin = (newRole: Role) => {
-    setRole(newRole);
-  };
-
-  const isAuthenticated = role !== Role.PUBLIC;
+  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-gray-50 text-red-600">Loading Lais Qatar ERP...</div>;
 
   return (
     <Router>
-      <Layout role={role} lang={lang} setLang={setLang} setRole={handleRoleChange} isAuthenticated={isAuthenticated}>
+      <Layout lang={lang} setLang={setLang}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home lang={lang} />} />
           <Route path="/services" element={<Services lang={lang} />} />
           <Route path="/about" element={<About lang={lang} />} />
           <Route path="/contact" element={<Contact lang={lang} />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} lang={lang} />} />
+          <Route path="/login" element={<Login lang={lang} />} />
 
           {/* Private Routes Guard */}
           {isAuthenticated ? (
             <>
               <Route path="/dashboard" element={<Dashboard lang={lang} />} />
-              <Route path="/work-orders" element={<WorkOrders role={role} lang={lang} />} />
+              <Route path="/work-orders" element={<WorkOrders lang={lang} />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/reports" element={<Reports />} />

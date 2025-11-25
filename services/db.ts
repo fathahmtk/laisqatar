@@ -1,8 +1,9 @@
 import { 
-  collection, getDocs, doc, setDoc, addDoc, updateDoc, deleteDoc, query, where, writeBatch 
+  collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, query, where, writeBatch 
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Asset, Contract, WorkOrder, Client, Invoice, InventoryItem, TeamMember, Expense, Report } from '../types';
+import { Asset, Contract, WorkOrder, Client, Invoice, InventoryItem, TeamMember, Expense, Report, Role, User as AppUser } from '../types';
+import { User } from 'firebase/auth';
 import { 
   MOCK_ASSETS, MOCK_CONTRACTS, MOCK_WORK_ORDERS, MOCK_CLIENTS, 
   MOCK_INVOICES, MOCK_INVENTORY, MOCK_TEAM, MOCK_EXPENSES, MOCK_REPORTS 
@@ -16,6 +17,33 @@ export const fetchCollection = async <T>(collectionName: string): Promise<T[]> =
   } catch (error) {
     console.error(`Error fetching ${collectionName}:`, error);
     return [];
+  }
+};
+
+// --- User Management ---
+export const syncUser = async (user: User): Promise<Role> => {
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+    
+    if (snap.exists()) {
+      return snap.data().role as Role;
+    } else {
+      // First time login - Create profile
+      // For this prototype, we default everyone to ADMIN so you can see all features immediately.
+      // In a real app, you might default to CLIENT or require manual approval.
+      const newRole = Role.ADMIN; 
+      await setDoc(userRef, { 
+        email: user.email, 
+        role: newRole,
+        name: user.displayName || user.email?.split('@')[0] || 'User',
+        createdAt: new Date().toISOString() 
+      });
+      return newRole;
+    }
+  } catch (e) {
+    console.error("Error syncing user:", e);
+    return Role.PUBLIC;
   }
 };
 

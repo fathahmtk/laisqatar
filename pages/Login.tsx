@@ -3,25 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { Role, Language } from '../types';
+import { Language } from '../types';
 import { TEXTS } from '../constants';
-import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
-  onLogin: (role: Role) => void; // Kept for backward compatibility with App.tsx routing
   lang: Language;
 }
 
-export const Login: React.FC<Props> = ({ onLogin, lang }) => {
+export const Login: React.FC<Props> = ({ lang }) => {
   const navigate = useNavigate();
-  const { setUserRole } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Only for the demo switcher UI
-  const [selectedRole, setSelectedRole] = useState<Role>(Role.ADMIN); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,14 +23,8 @@ export const Login: React.FC<Props> = ({ onLogin, lang }) => {
     setError(null);
 
     try {
-      // Attempt Firebase Login
       await signInWithEmailAndPassword(auth, email, password);
-      
-      // For this prototype, we manually set the role context based on the dropdown selection
-      // In production, this would come from the user's Firestore profile
-      setUserRole(selectedRole);
-      onLogin(selectedRole);
-      
+      // Navigation is handled by App.tsx router monitoring AuthContext
       navigate('/dashboard');
     } catch (err: any) {
       console.error("Login Failed", err);
@@ -113,27 +101,6 @@ export const Login: React.FC<Props> = ({ onLogin, lang }) => {
                    className="block w-full pl-10 rtl:pl-3 rtl:pr-10 py-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm transition-colors text-left rtl:text-right"
                    placeholder="••••••••"
                  />
-               </div>
-             </div>
-
-             {/* Role Selector for Demo Purposes */}
-             <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-               <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Simulate Role View</label>
-               <div className="grid grid-cols-3 gap-2">
-                 {[Role.ADMIN, Role.TECHNICIAN, Role.CLIENT].map(r => (
-                   <button
-                     type="button"
-                     key={r}
-                     onClick={() => setSelectedRole(r)}
-                     className={`text-xs py-1.5 px-2 rounded font-medium transition-colors border ${
-                       selectedRole === r 
-                         ? 'bg-red-100 text-red-700 border-red-200' 
-                         : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                     }`}
-                   >
-                     {r}
-                   </button>
-                 ))}
                </div>
              </div>
 
