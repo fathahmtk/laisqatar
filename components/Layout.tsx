@@ -1,12 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Database, FileText, Wrench, Package, 
   DollarSign, Briefcase, Settings, Menu, X, Bell, LogOut, 
-  PhoneCall, MapPin, Globe, MessageCircle, Users, BarChart3
+  MessageCircle, Users, BarChart3, Globe, User, ChevronDown, Check
 } from 'lucide-react';
-import { Role, Language, Notification } from '../types';
+import { Role, Language } from '../types';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -29,11 +28,31 @@ const LanguageSwitcher: React.FC<{ currentLang: Language; onToggle: (lang: Langu
 export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, userRole, logout } = useAuth();
   
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  
   const isPublic = !currentUser || userRole === Role.PUBLIC;
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -54,12 +73,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
     <Link
       to={to}
       onClick={() => setSidebarOpen(false)}
-      className={`flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg mb-1 transition-colors
+      className={`flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg mb-1 transition-colors group
         ${location.pathname.startsWith(to)
           ? 'bg-red-50 text-red-600 font-medium' 
           : 'text-gray-600 hover:bg-gray-50'}`}
     >
-      <Icon size={20} />
+      <Icon size={20} className={`transition-colors ${location.pathname.startsWith(to) ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700'}`} />
       <span>{label}</span>
     </Link>
   );
@@ -68,18 +87,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center space-x-2 rtl:space-x-reverse">
-          <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">L</div>
-          <span className={`text-2xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>{TEXTS.brand[lang]}</span>
+          <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">L</div>
+          <span className={`text-2xl font-bold tracking-tight ${scrolled ? 'text-gray-900' : 'text-white'}`}>{TEXTS.brand[lang]}</span>
         </div>
         <nav className="hidden lg:flex items-center space-x-8 rtl:space-x-reverse">
-          <Link to="/" className={`font-medium ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.home[lang]}</Link>
-          <Link to="/services" className={`font-medium ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.services[lang]}</Link>
-          <Link to="/about" className={`font-medium ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.about[lang]}</Link>
-          <Link to="/contact" className={`font-medium ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.contact[lang]}</Link>
+          <Link to="/" className={`font-medium hover:text-red-500 transition-colors ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.home[lang]}</Link>
+          <Link to="/services" className={`font-medium hover:text-red-500 transition-colors ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.services[lang]}</Link>
+          <Link to="/about" className={`font-medium hover:text-red-500 transition-colors ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.about[lang]}</Link>
+          <Link to="/contact" className={`font-medium hover:text-red-500 transition-colors ${scrolled ? 'text-gray-600' : 'text-white'}`}>{TEXTS.contact[lang]}</Link>
         </nav>
         <div className="flex items-center space-x-4 rtl:space-x-reverse">
           <div className={scrolled ? '' : 'text-white'}><LanguageSwitcher currentLang={lang} onToggle={setLang} /></div>
-          <Link to="/login" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-bold shadow-lg text-sm">
+          <Link to="/login" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-full font-bold shadow-lg text-sm transition-transform hover:-translate-y-0.5">
             {TEXTS.login[lang]}
           </Link>
         </div>
@@ -88,7 +107,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
   );
 
   if (isPublic) return (
-    <div className="font-sans relative">
+    <div className="font-sans relative selection:bg-red-100 selection:text-red-900">
       <PublicHeader />
       <main>{children}</main>
       
@@ -105,57 +124,138 @@ export const Layout: React.FC<LayoutProps> = ({ children, lang, setLang }) => {
     </div>
   );
 
+  const unreadNotifications = MOCK_NOTIFICATIONS.filter(n => !n.read);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex font-sans">
-      <aside className={`fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-gray-200 transition-transform ${sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0'}`}>
+    <div className="min-h-screen bg-gray-50 flex font-sans selection:bg-red-100 selection:text-red-900">
+      {/* Sidebar Overlay for Mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-gray-200 shadow-xl lg:shadow-none transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0'}`}>
         <div className="h-16 flex items-center px-6 border-b border-gray-100 justify-between">
-           <span className="text-xl font-bold text-red-600">{TEXTS.brand[lang]}</span>
-           <button onClick={() => setSidebarOpen(false)} className="lg:hidden"><X size={20} /></button>
+           <div className="flex items-center space-x-2 rtl:space-x-reverse">
+             <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">L</div>
+             <span className="text-xl font-bold text-gray-900">{TEXTS.brand[lang]}</span>
+           </div>
+           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700"><X size={20} /></button>
         </div>
-        <div className="p-4 overflow-y-auto h-[calc(100vh-4rem)] space-y-1">
+        
+        <div className="p-4 overflow-y-auto h-[calc(100vh-4rem)] space-y-1 no-scrollbar">
             <NavItem to="/dashboard" icon={LayoutDashboard} label={TEXTS.dashboard[lang]} />
             
-            <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Modules</div>
+            <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Operations</div>
             <NavItem to="/masters" icon={Database} label={TEXTS.masters_nav[lang]} />
             <NavItem to="/amc" icon={FileText} label={TEXTS.amc_nav[lang]} />
             <NavItem to="/jobs" icon={Wrench} label={TEXTS.jobs_nav[lang]} />
             <NavItem to="/projects" icon={Briefcase} label={TEXTS.projects_nav[lang]} />
             <NavItem to="/inventory" icon={Package} label={TEXTS.inventory_nav[lang]} />
-            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} />
             
-            <div className="pt-4 pb-1 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Management</div>
+            <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Management</div>
+            <NavItem to="/finance" icon={DollarSign} label={TEXTS.finance_nav[lang]} />
             <NavItem to="/reports" icon={BarChart3} label="Reports" />
             <NavItem to="/team" icon={Users} label="Team" />
+            
+            <div className="pt-6 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">System</div>
             <NavItem to="/settings" icon={Settings} label="Settings" />
         </div>
       </aside>
 
       <div className="flex-1 lg:ltr:ml-64 lg:rtl:mr-64 flex flex-col min-h-screen transition-all">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
+        {/* Top Header */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 shadow-sm">
            <div className="flex items-center">
-             <button onClick={() => setSidebarOpen(true)} className="mr-4 rtl:ml-4 rtl:mr-0 lg:hidden text-gray-600">
+             <button onClick={() => setSidebarOpen(true)} className="mr-4 rtl:ml-4 rtl:mr-0 lg:hidden text-gray-600 p-1 hover:bg-gray-100 rounded-lg">
                <Menu size={24} />
              </button>
              <h2 className="text-lg font-bold text-gray-800 hidden md:block">
-                {currentUser?.email ? `Welcome, ${currentUser.email.split('@')[0]}` : 'Welcome'}
+                {currentUser?.email ? `Welcome, ${currentUser.email.split('@')[0]}` : 'Welcome back'}
              </h2>
            </div>
            
            <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <LanguageSwitcher currentLang={lang} onToggle={setLang} />
               
-              <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full">
-                <Bell size={20} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <div className="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
+              {/* Notifications */}
+              <div className="relative" ref={notificationRef}>
+                <button 
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className={`relative p-2 rounded-full transition-colors ${notificationsOpen ? 'bg-red-50 text-red-600' : 'text-gray-500 hover:bg-gray-100'}`}
+                >
+                  <Bell size={20} />
+                  {unreadNotifications.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                  )}
+                </button>
+                
+                {notificationsOpen && (
+                  <div className="absolute right-0 rtl:left-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 border-b border-gray-50 flex justify-between items-center">
+                       <span className="font-bold text-sm text-gray-900">Notifications</span>
+                       <span className="text-xs text-red-600 font-medium cursor-pointer">Mark all read</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {MOCK_NOTIFICATIONS.length > 0 ? (
+                        MOCK_NOTIFICATIONS.map(n => (
+                          <div key={n.id} className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 relative">
+                             <div className="flex justify-between items-start mb-1">
+                               <span className={`font-semibold text-sm ${n.type === 'SLA_BREACH' ? 'text-red-700' : 'text-gray-800'}`}>{n.title}</span>
+                               <span className="text-[10px] text-gray-400">{n.timestamp}</span>
+                             </div>
+                             <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
+                             {!n.read && <span className="absolute left-1 top-4 w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-8 text-center text-gray-400 text-sm">No new notifications</div>
+                      )}
+                    </div>
+                    <div className="px-4 py-2 border-t border-gray-50 text-center">
+                       <Link to="/settings" className="text-xs font-bold text-gray-600 hover:text-red-600">View All</Link>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              <button onClick={handleLogout} className="text-gray-500 hover:text-red-600 p-2 hover:bg-red-50 rounded-full" title="Sign Out">
-                 <LogOut size={20} />
-              </button>
+              {/* User Menu */}
+              <div className="relative" ref={userMenuRef}>
+                <button 
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center space-x-2 rtl:space-x-reverse hover:bg-gray-50 p-1 pr-3 rounded-full border border-transparent hover:border-gray-200 transition-all"
+                >
+                  <div className="h-8 w-8 bg-slate-800 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    {currentUser?.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <ChevronDown size={14} className="text-gray-400" />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 rtl:left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-3 border-b border-gray-50">
+                      <p className="text-sm font-bold text-gray-900">{currentUser?.email?.split('@')[0]}</p>
+                      <p className="text-xs text-gray-500 truncate">{currentUser?.email}</p>
+                    </div>
+                    <div className="py-1">
+                      <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <User size={16} className="mr-2 rtl:ml-2 rtl:mr-0 text-gray-400"/> Profile
+                      </Link>
+                      <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <Settings size={16} className="mr-2 rtl:ml-2 rtl:mr-0 text-gray-400"/> Settings
+                      </Link>
+                    </div>
+                    <div className="py-1 border-t border-gray-50">
+                      <button onClick={handleLogout} className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <LogOut size={16} className="mr-2 rtl:ml-2 rtl:mr-0"/> Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
            </div>
         </header>
 
