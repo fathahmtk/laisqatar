@@ -25,7 +25,7 @@ export const Masters: React.FC = () => {
       onClick={() => setActiveTab(id)}
       className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === id ? 'bg-white shadow text-red-600' : 'text-gray-500 hover:bg-gray-100'}`}
     >
-      <Icon size={16} className="mr-2" /> {label}
+      <Icon size={16} className="mr-2 rtl:ml-2 rtl:mr-0" /> {label}
     </button>
   );
 
@@ -43,15 +43,15 @@ export const Masters: React.FC = () => {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex justify-between bg-gray-50">
           <div className="relative w-64">
-             <input type="text" placeholder={`Search ${activeTab}...`} className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20" />
-             <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+             <input type="text" placeholder={`Search ${activeTab}...`} className="w-full pl-9 pr-4 rtl:pl-4 rtl:pr-9 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 text-left rtl:text-right" />
+             <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-2.5 text-gray-400" size={16} />
           </div>
           <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-slate-800">
-             <Plus size={16} className="mr-2" /> Add New
+             <Plus size={16} className="mr-2 rtl:ml-2 rtl:mr-0" /> Add New
           </button>
         </div>
 
-        <table className="w-full text-sm text-left text-gray-600">
+        <table className="w-full text-sm text-left rtl:text-right text-gray-600">
           <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
             {activeTab === 'customers' && (
                <tr>

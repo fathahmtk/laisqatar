@@ -36,14 +36,14 @@ export const AMC: React.FC = () => {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between bg-gray-50">
             <div className="relative w-64">
-              <input type="text" placeholder="Search contracts..." className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20" />
-              <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+              <input type="text" placeholder="Search contracts..." className="w-full pl-9 pr-4 rtl:pl-4 rtl:pr-9 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 text-left rtl:text-right" />
+              <Search className="absolute left-3 rtl:right-3 rtl:left-auto top-2.5 text-gray-400" size={16} />
             </div>
             <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-red-700">
-              <Plus size={16} className="mr-2" /> New Contract
+              <Plus size={16} className="mr-2 rtl:ml-2 rtl:mr-0" /> New Contract
             </button>
           </div>
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left rtl:text-right">
             <thead className="bg-gray-50 text-gray-700 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4">Code</th>
@@ -52,7 +52,7 @@ export const AMC: React.FC = () => {
                 <th className="px-6 py-4">Value (QAR)</th>
                 <th className="px-6 py-4">Frequency</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-4 text-right rtl:text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -65,11 +65,11 @@ export const AMC: React.FC = () => {
                   <td className="px-6 py-4">{contract.frequency}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {contract.status === 'Active' ? <CheckCircle size={12} className="mr-1" /> : <AlertCircle size={12} className="mr-1" />}
+                      {contract.status === 'Active' ? <CheckCircle size={12} className="mr-1 rtl:ml-1 rtl:mr-0" /> : <AlertCircle size={12} className="mr-1 rtl:ml-1 rtl:mr-0" />}
                       {contract.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right rtl:text-left">
                     <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={18} /></button>
                   </td>
                 </tr>
