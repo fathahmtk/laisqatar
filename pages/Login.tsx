@@ -1,8 +1,7 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle, PlayCircle } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
 import { Language } from '../types';
 import { TEXTS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,7 +12,7 @@ interface Props {
 
 export const Login: React.FC<Props> = ({ lang }) => {
   const navigate = useNavigate();
-  const { loginDemo } = useAuth();
+  const { login, loginDemo } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,18 +24,11 @@ export const Login: React.FC<Props> = ({ lang }) => {
     setError(null);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await login({ email, password });
       navigate('/dashboard');
     } catch (err: any) {
       console.error("Login Failed", err);
-      // Fallback for demo environment if firebase keys are placeholders
-      if (err.code === 'auth/invalid-api-key' || err.message.includes('API key')) {
-        setError('Firebase not configured. Please use Demo Login below.');
-      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-        setError('Invalid email or password.');
-      } else {
-        setError('Login failed. Check console for details.');
-      }
+      setError('Login failed. Invalid credentials or server not running.');
     } finally {
       setLoading(false);
     }
@@ -80,13 +72,13 @@ export const Login: React.FC<Props> = ({ lang }) => {
              )}
 
              <div className="space-y-1">
-               <label className="text-sm font-semibold text-gray-700 ml-1">Email Address</label>
+               <label className="text-sm font-semibold text-gray-700 ml-1">Email / Username</label>
                <div className="relative">
                  <div className="absolute inset-y-0 left-0 rtl:right-0 rtl:left-auto pl-3 rtl:pr-3 flex items-center pointer-events-none">
                    <Mail className="h-5 w-5 text-gray-400" />
                  </div>
                  <input
-                   type="email"
+                   type="text"
                    value={email}
                    onChange={(e) => setEmail(e.target.value)}
                    className="block w-full pl-10 rtl:pl-3 rtl:pr-10 py-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-sm transition-colors text-left rtl:text-right"

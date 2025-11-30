@@ -78,4 +78,12 @@ export const Api = {
   // Finance
   listInvoices: () => apiFetch<any[]>('sales-invoices/'),
   listAccounts: () => apiFetch<any[]>('accounts/'),
+  listJournals: () => apiFetch<any[]>('journal-entries/'),
+  listExpenses: () => apiFetch<any[]>('purchase-invoices/'), // Mapping expenses to Purchase Invoices for now or create a separate endpoint if model exists
+
+  // Inventory
+  listInventory: () => apiFetch<any[]>('items/'),
+
+  // Team
+  listTeam: () => apiFetch<any[]>('technicians/'),
 };

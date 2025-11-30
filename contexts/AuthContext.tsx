@@ -1,13 +1,13 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
-import { Role } from '../types';
-import { syncUser } from '../services/db';
+import { Role, User } from '../types';
+import { Api } from '../services/api';
 
 interface AuthContextType {
   currentUser: User | null;
   userRole: Role;
   loading: boolean;
+  login: (credentials: {email: string, password: string}) => Promise<void>;
   logout: () => Promise<void>;
   loginDemo: () => Promise<void>;
 }
@@ -26,56 +26,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userRole, setUserRole] = useState<Role>(Role.PUBLIC);
 
   useEffect(() => {
-    // Listen for real Firebase Auth changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        const role = await syncUser(user);
-        setUserRole(role);
-      } else {
-        // Only reset if we aren't in a demo session (demo users have a specific UID prefix)
-        if (currentUser?.uid !== 'demo-admin') {
-          setCurrentUser(null);
-          setUserRole(Role.PUBLIC);
-        }
-      }
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    // Check for a token on initial load
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // In a real app, you'd verify the token with the backend here
+      // and fetch user details. For now, we'll simulate it.
+      const demoUser: User = {
+        id: 'user-001',
+        username: 'admin',
+        email: 'admin@laisqatar.com',
+        fullName: 'Admin User',
+        role: Role.ADMIN,
+      };
+      setCurrentUser(demoUser);
+      setUserRole(Role.ADMIN);
+    }
+    setLoading(false);
   }, []);
 
+  const login = async (credentials: {email: string, password: string}) => {
+    // Django's default User model uses 'username', not 'email' for login
+    // This assumes you've configured Django to accept email or you map it here.
+    const { access } = await Api.login({ username: credentials.email, password: credentials.password });
+    localStorage.setItem('authToken', access);
+    
+    const loggedInUser: User = {
+      id: 'user-001',
+      username: credentials.email.split('@')[0],
+      email: credentials.email,
+      fullName: 'Admin User',
+      role: Role.ADMIN,
+    };
+    setCurrentUser(loggedInUser);
+    setUserRole(Role.ADMIN);
+  };
+
   const logout = async () => {
-    try {
-      await firebaseSignOut(auth);
-    } catch (e) {
-      // Ignore firebase errors if in demo mode
-    }
+    localStorage.removeItem('authToken');
     setCurrentUser(null);
     setUserRole(Role.PUBLIC);
   };
 
   const loginDemo = async () => {
-    // Simulate an authenticated user
-    const demoUser = {
-      uid: 'demo-admin',
+    // This simulates getting a token and setting the user state
+    localStorage.setItem('authToken', 'demo-token');
+    const demoUser: User = {
+      id: 'demo-admin',
+      username: 'demoadmin',
       email: 'admin@laisqatar.com',
-      displayName: 'System Admin',
-      emailVerified: true,
-      isAnonymous: false,
-      metadata: {},
-      providerData: [],
-      refreshToken: '',
-      tenantId: null,
-      delete: async () => {},
-      getIdToken: async () => 'demo-token',
-      getIdTokenResult: async () => ({} as any),
-      reload: async () => {},
-      toJSON: () => ({}),
-      phoneNumber: null,
-      photoURL: null
-    } as unknown as User;
-
+      fullName: 'System Admin (Demo)',
+      role: Role.ADMIN,
+    };
     setCurrentUser(demoUser);
     setUserRole(Role.ADMIN);
   };
@@ -84,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     userRole,
     loading,
+    login,
     logout,
     loginDemo
   };

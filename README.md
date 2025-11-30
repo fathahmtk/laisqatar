@@ -1,4 +1,4 @@
-# Lais Qatar - Fire & Safety ERP
+# Lais Qatar - Fire & Safety ERP Frontend
 
 A comprehensive Enterprise Resource Planning (ERP) frontend application designed for **Lais Qatar**, a leader in Fire & Safety solutions. This system manages the full lifecycle of operations including AMC contracts, preventive maintenance, corrective job cards, asset tracking, inventory, and financial reporting.
 
@@ -21,9 +21,9 @@ A comprehensive Enterprise Resource Planning (ERP) frontend application designed
 *   **Routing**: React Router DOM v7
 *   **Icons**: Lucide React
 *   **Charts**: Recharts
-*   **Backend / DB**: Firebase (Auth, Firestore, Storage) / Django (Optional)
+*   **Backend / DB**: Firebase (Auth, Firestore, Storage) and/or a custom Django REST backend.
 
-## 📦 Installation
+## 📦 Installation & Setup
 
 1.  **Clone the repository**
     ```bash
@@ -36,12 +36,24 @@ A comprehensive Enterprise Resource Planning (ERP) frontend application designed
     npm install
     ```
 
-3.  **Configure Firebase**
+3.  **Configure Backend Connection**
+
+    This frontend is designed to work with either Firebase or a custom Django backend.
+
+    **Option A: Firebase (Default)**
     *   Create a project in the [Firebase Console](https://console.firebase.google.com/).
     *   Enable **Authentication** (Email/Password).
     *   Enable **Firestore Database**.
     *   Copy your web app configuration keys.
-    *   Update `lib/firebase.ts` with your keys or set them via environment variables.
+    *   Update `lib/firebase.ts` with your keys.
+
+    **Option B: Django REST Backend**
+    *   Ensure the Django backend from the `/backend` directory is running (see `backend/README.md`).
+    *   Create a `.env.local` file in the project root.
+    *   Add your backend URL:
+        ```env
+        VITE_API_BASE_URL=http://127.0.0.1:8000/api
+        ```
 
 4.  **Run the development server**
     ```bash
@@ -55,7 +67,7 @@ A comprehensive Enterprise Resource Planning (ERP) frontend application designed
 *   `src/services`: Database interactions (`db.ts` for Firebase, `api.ts` for Django).
 *   `src/contexts`: Global state (AuthContext).
 *   `src/types`: TypeScript interfaces for the domain models.
-*   `backend/`: Complete Django REST Framework backend (Optional).
+*   `backend/`: Complete Django REST Framework backend.
 
 ## 🛡️ Roles & Permissions
 

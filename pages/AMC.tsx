@@ -2,7 +2,32 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Calendar, Plus, Search, Filter, MoreHorizontal, CheckCircle, AlertCircle } from 'lucide-react';
 import { AMCContract, Customer } from '../types';
-import { getAMCContracts, getCustomers } from '../services/db';
+import { Api } from '../services/api';
+
+const mapBackendToContract = (data: any): AMCContract => ({
+  id: data.id.toString(),
+  code: data.contract_code,
+  customerId: data.customer.toString(),
+  startDate: data.start_date,
+  endDate: data.end_date,
+  frequency: data.frequency,
+  contractValue: parseFloat(data.contract_value),
+  billingCycle: data.billing_cycle,
+  status: data.status,
+  sites: [], // This would require a nested serializer or separate fetch
+});
+
+const mapBackendToCustomer = (data: any): Customer => ({
+    id: data.id.toString(),
+    code: data.customer_code,
+    name: data.name,
+    type: data.customer_type,
+    email: data.email,
+    phone: data.phone,
+    address: data.billing_address,
+    paymentTermsDays: data.payment_terms_days,
+    creditLimit: parseFloat(data.credit_limit || '0'),
+});
 
 export const AMC: React.FC = () => {
   const [contracts, setContracts] = useState<AMCContract[]>([]);
@@ -12,10 +37,15 @@ export const AMC: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [cData, custData] = await Promise.all([getAMCContracts(), getCustomers()]);
-      setContracts(cData);
-      setCustomers(custData);
-      setLoading(false);
+      try {
+        const [cData, custData] = await Promise.all([Api.listAMC(), Api.listCustomers()]);
+        setContracts(cData.map(mapBackendToContract));
+        setCustomers(custData.map(mapBackendToCustomer));
+      } catch (error) {
+        console.error("Failed to fetch AMC data", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);

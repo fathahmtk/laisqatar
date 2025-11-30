@@ -1,8 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
-import { getProjects } from '../services/db';
 import { Project } from '../types';
 import { Building, DollarSign, Calendar } from 'lucide-react';
+import { Api } from '../services/api';
+
+const mapBackendToProject = (data: any): Project => ({
+    id: data.id.toString(),
+    code: data.project_code,
+    name: data.name,
+    customerId: data.customer.toString(),
+    siteId: data.site?.toString(),
+    startDate: data.start_date,
+    endDate: data.end_date,
+    value: parseFloat(data.project_value),
+    budget: 0, // These would require more complex queries
+    totalCost: 0, // or nested serializers
+    status: data.status,
+    managerId: data.project_manager?.toString(),
+});
 
 export const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -10,9 +25,14 @@ export const Projects: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getProjects();
-      setProjects(data);
-      setLoading(false);
+      try {
+        const data = await Api.listProjects();
+        setProjects(data.map(mapBackendToProject));
+      } catch (e) {
+        console.error("Failed to fetch projects", e);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -32,16 +52,12 @@ export const Projects: React.FC = () => {
               </div>
               <div className="space-y-3">
                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Budget</span>
-                    <span className="font-mono font-medium">{p.budget.toLocaleString()} QAR</span>
+                    <span className="text-gray-500">Project Value</span>
+                    <span className="font-mono font-medium">{p.value.toLocaleString()} QAR</span>
                  </div>
-                 <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Cost Incurred</span>
-                    <span className="font-mono font-medium text-red-600">{p.totalCost.toLocaleString()} QAR</span>
-                 </div>
-                 <div className="w-full bg-gray-100 rounded-full h-2">
+                 {p.budget > 0 && <div className="w-full bg-gray-100 rounded-full h-2">
                     <div className="bg-blue-600 h-2 rounded-full" style={{width: `${(p.totalCost/p.budget)*100}%`}}></div>
-                 </div>
+                 </div>}
               </div>
            </div>
         ))}

@@ -1,8 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { getInventory } from '../services/db';
 import { Item } from '../types';
 import { Package, Search, Filter, Plus, AlertTriangle, ArrowDown, ArrowUp } from 'lucide-react';
+import { Api } from '../services/api';
+
+const mapBackendToItem = (data: any): Item => ({
+  id: data.id.toString(),
+  code: data.item_code,
+  name: data.name,
+  category: data.category,
+  stockQty: 0, // This would come from a separate stock ledger query
+  minLevel: 0,
+  costPrice: parseFloat(data.standard_cost),
+  sellingPrice: parseFloat(data.selling_price),
+  location: '', // This would come from warehouse info
+});
 
 export const Inventory: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -11,8 +23,12 @@ export const Inventory: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getInventory();
-      setItems(data);
+      try {
+        const data = await Api.listInventory();
+        setItems(data.map(mapBackendToItem));
+      } catch (error) {
+        console.error("Failed to fetch inventory", error);
+      }
     };
     fetchData();
   }, []);
@@ -94,11 +110,6 @@ export const Inventory: React.FC = () => {
                      <td className="px-6 py-4 text-xs text-gray-500">{i.location}</td>
                   </tr>
                ))}
-               {filteredItems.length === 0 && (
-                  <tr>
-                     <td colSpan={7} className="text-center py-10 text-gray-500">No items found matching your criteria.</td>
-                  </tr>
-               )}
             </tbody>
          </table>
       </div>

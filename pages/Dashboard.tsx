@@ -6,7 +6,7 @@ import {
 import { AlertTriangle, TrendingUp, Users, CheckCircle, AlertOctagon } from 'lucide-react';
 import { TEXTS, MOCK_NOTIFICATIONS } from '../constants';
 import { Language } from '../types';
-import { getAMCContracts, getJobs, getInvoices } from '../services/db';
+import { Api } from '../services/api';
 
 interface Props {
   lang: Language;
@@ -15,7 +15,6 @@ interface Props {
 const COLORS = ['#DC2626', '#F59E0B', '#10B981', '#6366F1'];
 
 export const Dashboard: React.FC<Props> = ({ lang }) => {
-  // Real Data States
   const [stats, setStats] = useState({
     activeContracts: 0,
     totalRevenue: 0,
@@ -28,17 +27,15 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      // Fetch Collections
       const [contracts, workOrders, invoices] = await Promise.all([
-        getAMCContracts(),
-        getJobs(),
-        getInvoices()
+        Api.listAMC(),
+        Api.listJobs(),
+        Api.listInvoices()
       ]);
 
-      // Calculate Stats
       const activeContracts = contracts.filter(c => c.status === 'Active').length;
       const critical = workOrders.filter(w => w.priority === 'Critical').length;
-      const totalRevenue = invoices.reduce((sum, inv) => inv.status === 'Paid' ? sum + inv.totalAmount : sum, 0);
+      const totalRevenue = invoices.reduce((sum, inv) => inv.status === 'Paid' ? sum + parseFloat(inv.grand_total) : sum, 0);
 
       setStats({
         activeContracts,
@@ -47,7 +44,6 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
         complianceRate: 98 // Hardcoded for now
       });
 
-      // Prepare Chart Data (Mocking monthly distribution for demo visualization based on totals)
       setChartData([
          { name: 'Jan', revenue: totalRevenue * 0.1, jobs: workOrders.length * 0.1 },
          { name: 'Feb', revenue: totalRevenue * 0.15, jobs: workOrders.length * 0.2 },
@@ -56,7 +52,7 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
          { name: 'May', revenue: totalRevenue * 0.3, jobs: workOrders.length * 0.2 }
       ]);
 
-      const preventive = workOrders.filter(w => w.description.toLowerCase().includes('check') || w.description.toLowerCase().includes('inspection')).length;
+      const preventive = workOrders.filter(w => w.job_type === 'Preventive').length;
       const emergency = workOrders.filter(w => w.priority === 'Critical' || w.priority === 'High').length;
       
       setPieData([
@@ -82,7 +78,7 @@ export const Dashboard: React.FC<Props> = ({ lang }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{TEXTS.dashboard[lang]}</h1>
-        <div className="text-sm text-gray-500">Live Data from Firestore</div>
+        <div className="text-sm text-gray-500">Live Data from Django Backend</div>
       </div>
 
       {slaBreaches.length > 0 && (

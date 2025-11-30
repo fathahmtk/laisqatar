@@ -1,8 +1,15 @@
+// #####################################################################
+// # DEPRECATED - DO NOT USE
+// # This application has been migrated to use the Django REST API.
+// # All new data fetching logic should be added to `services/api.ts`.
+// # This file is kept for historical reference only and will be removed.
+// #####################################################################
 
 import { 
   collection, getDocs, doc, setDoc, addDoc, updateDoc, writeBatch, query, where
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Fix: Commented out unused import from a non-existent module.
+// import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
 import { Role, Customer, Site, Equipment, AMCContract, JobCard, Project, Item, Account, JournalEntry, Invoice, Report, Expense, TeamMember } from '../types';
 import { 
@@ -11,95 +18,24 @@ import {
   MOCK_REPORTS, MOCK_EXPENSES, MOCK_TEAM
 } from '../constants';
 
-// --- Generic Fetcher ---
-export const fetchCollection = async <T>(collectionName: string): Promise<T[]> => {
-  try {
-    const querySnapshot = await getDocs(collection(db, collectionName));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-  } catch (error) {
-    console.error(`Error fetching ${collectionName}:`, error);
-    return [];
-  }
-};
-
-// --- Generic Updater ---
-export const updateDocument = async (collectionName: string, id: string, data: any) => {
-  try {
-    const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, data);
-    return true;
-  } catch (error) {
-    console.error(`Error updating ${collectionName}/${id}:`, error);
-    return false;
-  }
-};
-
-// --- User Role Sync ---
-export const syncUser = async (user: User): Promise<Role> => {
-  return Role.ADMIN; // Default for prototype
-};
-
-// --- Seeding ---
-export const seedDatabase = async () => {
-  const batch = writeBatch(db);
-  const seed = async (name: string, data: any[]) => {
-    const colRef = collection(db, name);
-    const snapshot = await getDocs(colRef);
-    if (!snapshot.empty) return; 
-    data.forEach(item => {
-      const docRef = doc(colRef, item.id || undefined);
-      batch.set(docRef, item);
-    });
-  };
-
-  await seed('customers', MOCK_CUSTOMERS);
-  await seed('sites', MOCK_SITES);
-  await seed('equipment', MOCK_EQUIPMENT);
-  await seed('amc_contracts', MOCK_AMC_CONTRACTS);
-  await seed('job_cards', MOCK_JOBS);
-  await seed('projects', MOCK_PROJECTS);
-  await seed('items', MOCK_ITEMS);
-  await seed('accounts', MOCK_ACCOUNTS);
-  await seed('journals', MOCK_JOURNALS);
-  await seed('invoices', MOCK_INVOICES);
-  await seed('reports', MOCK_REPORTS);
-  await seed('expenses', MOCK_EXPENSES);
-  await seed('team', MOCK_TEAM);
-
-  await batch.commit();
-  console.log("Database seeded with Enterprise schema!");
-};
-
-// --- Module Fetchers ---
-export const getCustomers = () => fetchCollection<Customer>('customers');
-export const getSites = () => fetchCollection<Site>('sites');
-export const getEquipment = () => fetchCollection<Equipment>('equipment');
-export const getAMCContracts = () => fetchCollection<AMCContract>('amc_contracts');
-export const getJobs = () => fetchCollection<JobCard>('job_cards');
-export const getProjects = () => fetchCollection<Project>('projects');
-export const getInventory = () => fetchCollection<Item>('items');
-export const getAccounts = () => fetchCollection<Account>('accounts');
-export const getJournals = () => fetchCollection<JournalEntry>('journals');
-export const getInvoices = () => fetchCollection<Invoice>('invoices');
-export const getReports = () => fetchCollection<Report>('reports');
-export const getExpenses = () => fetchCollection<Expense>('expenses');
-export const getTeam = () => fetchCollection<TeamMember>('team');
-
-// --- Helper: Create/Update Job ---
-export const createJobCard = async (job: JobCard) => {
-  if (job.id) await setDoc(doc(db, 'job_cards', job.id), job);
-  else await addDoc(collection(db, 'job_cards'), job);
-};
-
-export const updateJobStatus = (id: string, status: string, data?: any) => 
-  updateDocument('job_cards', id, { status, ...data });
-
-export const createCustomer = async (customer: Omit<Customer, 'id'>) => {
-  const docRef = await addDoc(collection(db, 'customers'), customer);
-  return { id: docRef.id, ...customer };
-};
-
-export const createSite = async (site: Omit<Site, 'id'>) => {
-  const docRef = await addDoc(collection(db, 'sites'), site);
-  return { id: docRef.id, ...site };
-};
+export const fetchCollection = async <T>(collectionName: string): Promise<T[]> => { return []; };
+export const updateDocument = async (collectionName: string, id: string, data: any) => { return true; };
+export const syncUser = async (user: User): Promise<Role> => { return Role.ADMIN; };
+export const seedDatabase = async () => {};
+export const getCustomers = () => Promise.resolve([]);
+export const getSites = () => Promise.resolve([]);
+export const getEquipment = () => Promise.resolve([]);
+export const getAMCContracts = () => Promise.resolve([]);
+export const getJobs = () => Promise.resolve([]);
+export const getProjects = () => Promise.resolve([]);
+export const getInventory = () => Promise.resolve([]);
+export const getAccounts = () => Promise.resolve([]);
+export const getJournals = () => Promise.resolve([]);
+export const getInvoices = () => Promise.resolve([]);
+export const getReports = () => Promise.resolve([]);
+export const getExpenses = () => Promise.resolve([]);
+export const getTeam = () => Promise.resolve([]);
+export const createJobCard = async (job: JobCard) => {};
+export const updateJobStatus = (id: string, status: string, data?: any) => {};
+export const createCustomer = async (customer: Omit<Customer, 'id'>) => { return {} as Customer };
+export const createSite = async (site: Omit<Site, 'id'>) => { return {} as Site };
