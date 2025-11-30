@@ -7,7 +7,6 @@ const getAuthHeaders = () => {
     'Content-Type': 'application/json',
   };
   
-  // For production, this token would come from localStorage or HttpOnly cookie
   const token = localStorage.getItem('authToken');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -17,9 +16,8 @@ const getAuthHeaders = () => {
 };
 
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const cleanBase = API_BASE.replace(/\/$/, '');
-  const cleanEndpoint = endpoint.replace(/^\//, '');
-  const url = `${cleanBase}/${cleanEndpoint}/`; // Django REST Framework often uses trailing slashes
+  // Django REST Framework often uses trailing slashes
+  const url = `${API_BASE}/${endpoint}/`;
   
   const config = {
     ...options,
@@ -33,10 +31,12 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      // If auth fails, redirect to login
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem('authToken');
-        window.location.href = '/login';
+        // A more robust solution would use a router hook or context to redirect
+        if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+        }
       }
       const errorText = await response.text();
       throw new Error(`API Error ${response.status}: ${errorText}`);
@@ -57,7 +57,8 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 export const Api = {
   // Auth
   login: (credentials: { username: string, password: string }) => 
-    apiFetch<{ access: string, refresh: string }>('token/', { method: 'POST', body: JSON.stringify(credentials) }),
+    apiFetch<{ access: string, refresh: string }>('token', { method: 'POST', body: JSON.stringify(credentials) }),
+  getProfile: () => apiFetch<any>('profile'), // Assuming you have a /api/profile/ endpoint
 
   // Masters
   listCustomers: () => apiFetch<any[]>('customers'),
@@ -80,6 +81,7 @@ export const Api = {
   
   // Finance
   listInvoices: () => apiFetch<any[]>('sales-invoices'),
+  createInvoice: (data: any) => apiFetch<any>('sales-invoices', { method: 'POST', body: JSON.stringify(data) }),
   listAccounts: () => apiFetch<any[]>('accounts'),
   listJournals: () => apiFetch<any[]>('journal-entries'),
   listExpenses: () => apiFetch<any[]>('purchase-invoices'),
